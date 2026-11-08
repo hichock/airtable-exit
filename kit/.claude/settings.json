@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      { "matcher": "startup|resume|clear|compact",
+        "hooks": [ { "type": "command", "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh\"" } ] }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)", "Bash(git diff:*)", "Bash(git log:*)",
+      "Bash(npm run:*)", "Bash(npm test:*)", "Bash(npx tsc:*)",
+      "Bash(supabase migration list:*)", "Bash(vercel ls:*)", "Bash(gh repo view:*)"
+    ],
+    "deny": ["Read(./.env.local)", "Read(./.env)"]
+  }
+}

@@ -1,0 +1,23 @@
+# Weekly health check with Claude Code, as an alternative to a Claude Code scheduled task.
+# Off by default: only manual runs until you uncomment the schedule.
+# Needs repo secrets CLAUDE_CODE_OAUTH_TOKEN (from `claude setup-token`) and CRON_SECRET, and repo variable APP_URL.
+# Not tested live by airtable-exit: check the action's README for current inputs before enabling.
+name: Weekly health
+on:
+  workflow_dispatch: {}
+  # schedule:
+  #   - cron: "17 7 * * 1"   # Mondays 07:17 UTC
+permissions:
+  contents: write
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: "/health"
+        env:
+          APP_URL: ${{ vars.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
