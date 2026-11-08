@@ -1,0 +1,59 @@
+{
+  "generatedAt": "2026-11-08T12:00:00Z",
+  "note": "Invented sample in the shape the discover skill writes. Not real data.",
+  "bases": [
+    {
+      "id": "appSAMPLE0000001",
+      "name": "Sales",
+      "interfaces": [{ "id": "pbdA", "name": "Client view", "collaborators": [{ "permissionLevel": "read" }] }],
+      "tables": [
+        {
+          "id": "tblCompanies", "name": "Companies", "primaryFieldId": "fldCoName", "recordCount": 120,
+          "fields": [
+            { "id": "fldCoName", "name": "Name", "type": "singleLineText" },
+            { "id": "fldCoStatus", "name": "Status", "type": "singleSelect", "options": { "choices": [{ "name": "Lead", "color": "grayLight2" }, { "name": "Client", "color": "greenBright" }] } },
+            { "id": "fldCoDeals", "name": "Deals", "type": "multipleRecordLinks", "options": { "linkedTableId": "tblDeals", "inverseLinkFieldId": "fldDealCo", "prefersSingleRecordLink": false } },
+            { "id": "fldCoPipe", "name": "Pipeline", "type": "rollup", "options": { "recordLinkFieldId": "fldCoDeals", "fieldIdInLinkedTable": "fldDealValue" } },
+            { "id": "fldCoCount", "name": "Deal count", "type": "count", "options": { "recordLinkFieldId": "fldCoDeals" } },
+            { "id": "fldCoOld", "name": "Old notes", "type": "multilineText", "migrate": false }
+          ],
+          "views": [
+            { "id": "viwCoAll", "name": "All companies", "type": "grid", "visibleFieldIds": ["fldCoName", "fldCoStatus", "fldCoPipe"] },
+            { "id": "viwCoMine", "name": "My view", "type": "grid", "personalForUserId": "usrX" }
+          ]
+        },
+        {
+          "id": "tblDeals", "name": "Deals", "primaryFieldId": "fldDealName", "recordCount": 340,
+          "fields": [
+            { "id": "fldDealName", "name": "Deal name", "type": "singleLineText" },
+            { "id": "fldDealCo", "name": "Company", "type": "multipleRecordLinks", "options": { "linkedTableId": "tblCompanies", "inverseLinkFieldId": "fldCoDeals", "prefersSingleRecordLink": true } },
+            { "id": "fldDealStage", "name": "Stage", "type": "singleSelect", "options": { "choices": [{ "name": "Open", "color": "blueLight2" }, { "name": "Won", "color": "greenLight2" }] } },
+            { "id": "fldDealValue", "name": "Value", "type": "currency", "options": { "precision": 0, "symbol": "€" } },
+            { "id": "fldDealProb", "name": "Probability", "type": "percent", "options": { "precision": 0 } },
+            { "id": "fldDealW", "name": "Weighted", "type": "formula", "options": { "formula": "{fldDealValue} * {fldDealProb}", "isValid": true, "referencedFieldIds": ["fldDealValue", "fldDealProb"] } },
+            { "id": "fldDealAge", "name": "Age (days)", "type": "formula", "options": { "formula": "DATETIME_DIFF(TODAY(), CREATED_TIME(), 'days')", "isValid": true } },
+            { "id": "fldDealCoStatus", "name": "Company status", "type": "multipleLookupValues", "options": { "recordLinkFieldId": "fldDealCo", "fieldIdInLinkedTable": "fldCoStatus" } },
+            { "id": "fldDealTags", "name": "Tags", "type": "multipleRecordLinks", "options": { "linkedTableId": "tblTags", "inverseLinkFieldId": "fldTagDeals", "prefersSingleRecordLink": false } },
+            { "id": "fldDealOwner", "name": "Owner", "type": "singleCollaborator" },
+            { "id": "fldDealFiles", "name": "Files", "type": "multipleAttachments" },
+            { "id": "fldDealBtn", "name": "Open invoice", "type": "button" },
+            { "id": "fldDealNew", "name": "Mystery", "type": "someFutureType" }
+          ],
+          "views": [
+            { "id": "viwDealGrid", "name": "All deals", "type": "grid", "visibleFieldIds": ["fldDealName", "fldDealCo", "fldDealStage", "fldDealValue", "fldDealW"] },
+            { "id": "viwDealKan", "name": "Pipeline", "type": "kanban" },
+            { "id": "viwDealForm", "name": "New deal form", "type": "form" }
+          ]
+        },
+        {
+          "id": "tblTags", "name": "Tags", "primaryFieldId": "fldTagName",
+          "fields": [
+            { "id": "fldTagName", "name": "Name", "type": "singleLineText" },
+            { "id": "fldTagDeals", "name": "Deals", "type": "multipleRecordLinks", "options": { "linkedTableId": "tblDeals", "inverseLinkFieldId": "fldDealTags", "prefersSingleRecordLink": false } }
+          ],
+          "views": [{ "id": "viwTagAll", "name": "Grid view", "type": "grid" }]
+        }
+      ]
+    }
+  ]
+}

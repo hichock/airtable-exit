@@ -1,0 +1,172 @@
+{
+  "$schema": "./schema/app.schema.v1.json",
+  "version": 1,
+  "app": { "name": "Agency CRM", "currency": "USD", "locale": "en-US", "timeZone": "UTC" },
+  "tables": [
+    {
+      "key": "companies",
+      "label": "Companies",
+      "singular": "Company",
+      "primaryField": "name",
+      "fields": [
+        { "key": "name", "label": "Name", "type": "text", "required": true },
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "Lead", "color": "gray" },
+          { "value": "Active client", "color": "green" },
+          { "value": "Past client", "color": "blue" },
+          { "value": "Churned", "color": "red" }
+        ] },
+        { "key": "industry", "label": "Industry", "type": "select", "options": [
+          { "value": "SaaS", "color": "blue" },
+          { "value": "E-commerce", "color": "orange" },
+          { "value": "Health", "color": "teal" },
+          { "value": "Education", "color": "yellow" },
+          { "value": "Finance", "color": "purple" },
+          { "value": "Hospitality", "color": "pink" }
+        ] },
+        { "key": "size", "label": "Size", "type": "select", "options": [
+          { "value": "1-10", "color": "gray" },
+          { "value": "11-50", "color": "cyan" },
+          { "value": "51-200", "color": "blue" },
+          { "value": "200+", "color": "purple" }
+        ] },
+        { "key": "owner", "label": "Owner", "type": "user" },
+        { "key": "website", "label": "Website", "type": "url" },
+        { "key": "city", "label": "City", "type": "text" },
+        { "key": "pipeline_value", "label": "Pipeline", "type": "rollup", "computed": { "kind": "rollup", "table": "deals", "linkField": "company", "fn": "sum", "field": "value" } },
+        { "key": "deal_count", "label": "Deals", "type": "rollup", "computed": { "kind": "rollup", "table": "deals", "linkField": "company", "fn": "count" } },
+        { "key": "notes", "label": "Notes", "type": "longText" },
+        { "key": "files", "label": "Files", "type": "attachment" },
+        { "key": "created", "label": "Created", "type": "createdTime" }
+      ],
+      "views": [
+        { "key": "all", "label": "All companies", "type": "grid", "columns": ["name", "status", "industry", "size", "owner", "city", "pipeline_value", "deal_count"], "sorts": [{ "field": "name", "dir": "asc" }] },
+        { "key": "clients", "label": "Active clients", "type": "grid", "columns": ["name", "industry", "owner", "pipeline_value", "website"], "filters": [{ "field": "status", "op": "eq", "value": "Active client" }] },
+        { "key": "by_status", "label": "By status", "type": "kanban", "by": "status", "cardFields": ["industry", "owner", "city"] }
+      ]
+    },
+    {
+      "key": "contacts",
+      "label": "Contacts",
+      "singular": "Contact",
+      "primaryField": "name",
+      "fields": [
+        { "key": "name", "label": "Name", "type": "text", "required": true },
+        { "key": "company", "label": "Company", "type": "link", "link": { "table": "companies", "multiple": false } },
+        { "key": "title", "label": "Title", "type": "text" },
+        { "key": "email", "label": "Email", "type": "email" },
+        { "key": "phone", "label": "Phone", "type": "phone" },
+        { "key": "stage", "label": "Stage", "type": "select", "options": [
+          { "value": "New", "color": "gray" },
+          { "value": "Contacted", "color": "cyan" },
+          { "value": "Qualified", "color": "green" },
+          { "value": "Not a fit", "color": "red" }
+        ] },
+        { "key": "company_industry", "label": "Industry", "type": "lookup", "computed": { "kind": "lookup", "via": "company", "field": "industry" } },
+        { "key": "last_contacted", "label": "Last contacted", "type": "date" },
+        { "key": "linkedin", "label": "LinkedIn", "type": "url" }
+      ],
+      "views": [
+        { "key": "all", "label": "All contacts", "type": "grid", "columns": ["name", "company", "title", "email", "stage", "company_industry", "last_contacted"], "sorts": [{ "field": "name", "dir": "asc" }] },
+        { "key": "new", "label": "New leads", "type": "grid", "columns": ["name", "company", "email", "phone", "last_contacted"], "filters": [{ "field": "stage", "op": "eq", "value": "New" }] }
+      ]
+    },
+    {
+      "key": "deals",
+      "label": "Deals",
+      "singular": "Deal",
+      "primaryField": "name",
+      "fields": [
+        { "key": "name", "label": "Deal", "type": "text", "required": true },
+        { "key": "company", "label": "Company", "type": "link", "link": { "table": "companies", "multiple": false } },
+        { "key": "contacts", "label": "Contacts", "type": "link", "link": { "table": "contacts", "multiple": true } },
+        { "key": "stage", "label": "Stage", "type": "select", "options": [
+          { "value": "Lead", "color": "gray" },
+          { "value": "Qualified", "color": "cyan" },
+          { "value": "Proposal", "color": "blue" },
+          { "value": "Negotiation", "color": "yellow" },
+          { "value": "Won", "color": "green" },
+          { "value": "Lost", "color": "red" }
+        ] },
+        { "key": "value", "label": "Value", "type": "currency", "precision": 0, "currency": "USD" },
+        { "key": "probability", "label": "Probability", "type": "percent", "precision": 0 },
+        { "key": "weighted_value", "label": "Weighted", "type": "formula", "currency": "USD", "precision": 0, "computed": { "kind": "formula", "expr": "{value} * {probability}", "mode": "generated" } },
+        { "key": "close_date", "label": "Close date", "type": "date" },
+        { "key": "days_left", "label": "Days left", "type": "formula", "computed": { "kind": "formula", "expr": "DATETIME_DIFF({close_date}, TODAY(), 'days')", "mode": "app", "note": "Uses TODAY(), so it is computed in the app, not stored." } },
+        { "key": "owner", "label": "Owner", "type": "user" },
+        { "key": "source", "label": "Source", "type": "select", "options": [
+          { "value": "Referral", "color": "green" },
+          { "value": "Website", "color": "blue" },
+          { "value": "Outbound", "color": "orange" },
+          { "value": "Event", "color": "purple" }
+        ] },
+        { "key": "files", "label": "Files", "type": "attachment" }
+      ],
+      "views": [
+        { "key": "pipeline", "label": "Pipeline", "type": "kanban", "by": "stage", "cardFields": ["company", "value", "close_date", "owner"] },
+        { "key": "all", "label": "All deals", "type": "grid", "columns": ["name", "company", "stage", "value", "probability", "weighted_value", "close_date", "owner", "source"], "sorts": [{ "field": "close_date", "dir": "desc" }] },
+        { "key": "won", "label": "Won", "type": "grid", "columns": ["name", "company", "value", "close_date", "owner"], "filters": [{ "field": "stage", "op": "eq", "value": "Won" }], "sorts": [{ "field": "close_date", "dir": "desc" }] },
+        { "key": "closing", "label": "Close dates", "type": "calendar", "by": "close_date", "filters": [{ "field": "stage", "op": "neq", "value": "Lost" }] }
+      ]
+    },
+    {
+      "key": "tasks",
+      "label": "Tasks",
+      "singular": "Task",
+      "primaryField": "title",
+      "fields": [
+        { "key": "title", "label": "Task", "type": "text", "required": true },
+        { "key": "status", "label": "Status", "type": "select", "options": [
+          { "value": "To do", "color": "gray" },
+          { "value": "In progress", "color": "blue" },
+          { "value": "Done", "color": "green" }
+        ] },
+        { "key": "priority", "label": "Priority", "type": "select", "options": [
+          { "value": "Low", "color": "gray" },
+          { "value": "Medium", "color": "yellow" },
+          { "value": "High", "color": "red" }
+        ] },
+        { "key": "due", "label": "Due", "type": "date" },
+        { "key": "assignee", "label": "Assignee", "type": "user" },
+        { "key": "deal", "label": "Deal", "type": "link", "link": { "table": "deals", "multiple": false } },
+        { "key": "company", "label": "Company", "type": "link", "link": { "table": "companies", "multiple": false } },
+        { "key": "notes", "label": "Notes", "type": "longText" }
+      ],
+      "views": [
+        { "key": "open", "label": "Open tasks", "type": "grid", "columns": ["title", "status", "priority", "due", "assignee", "deal", "company"], "filters": [{ "field": "status", "op": "neq", "value": "Done" }], "sorts": [{ "field": "due", "dir": "asc" }] },
+        { "key": "board", "label": "Board", "type": "kanban", "by": "status", "cardFields": ["priority", "due", "assignee"] },
+        { "key": "calendar", "label": "Calendar", "type": "calendar", "by": "due" },
+        { "key": "all", "label": "All tasks", "type": "grid", "columns": ["title", "status", "priority", "due", "assignee", "deal"] }
+      ]
+    }
+  ],
+  "dashboards": [
+    {
+      "key": "overview",
+      "label": "Overview",
+      "tiles": [
+        { "label": "Open deals", "table": "deals", "metric": "count", "filters": [{ "field": "stage", "op": "neq", "value": "Won" }, { "field": "stage", "op": "neq", "value": "Lost" }] },
+        { "label": "Open pipeline", "table": "deals", "metric": "sum", "field": "value", "filters": [{ "field": "stage", "op": "neq", "value": "Won" }, { "field": "stage", "op": "neq", "value": "Lost" }] },
+        { "label": "Won", "table": "deals", "metric": "sum", "field": "value", "filters": [{ "field": "stage", "op": "eq", "value": "Won" }] },
+        { "label": "Active clients", "table": "companies", "metric": "count", "filters": [{ "field": "status", "op": "eq", "value": "Active client" }] },
+        { "label": "Open tasks", "table": "tasks", "metric": "count", "filters": [{ "field": "status", "op": "neq", "value": "Done" }] }
+      ],
+      "charts": [
+        { "label": "Deal value by stage", "table": "deals", "groupBy": "stage", "metric": "sum", "field": "value" },
+        { "label": "Deals by source", "table": "deals", "groupBy": "source", "metric": "count" },
+        { "label": "Companies by industry", "table": "companies", "groupBy": "industry", "metric": "count" },
+        { "label": "Open tasks by priority", "table": "tasks", "groupBy": "priority", "metric": "count", "filters": [{ "field": "status", "op": "neq", "value": "Done" }] }
+      ]
+    }
+  ],
+  "forms": [
+    { "key": "enquiry", "label": "Website enquiry", "table": "contacts", "fields": ["name", "email", "phone", "title"], "public": true, "intro": "Tell us how to reach you. We reply within one working day.", "submitLabel": "Send" },
+    { "key": "new_deal", "label": "New deal", "table": "deals", "fields": ["name", "company", "stage", "value", "probability", "close_date", "source"], "submitLabel": "Create deal" }
+  ],
+  "roles": [
+    { "key": "admin", "label": "Admin", "read": "*", "write": "*" },
+    { "key": "editor", "label": "Editor", "read": "*", "write": "*" },
+    { "key": "viewer", "label": "Viewer", "read": "*", "write": [] },
+    { "key": "portal", "label": "Outside user", "read": ["tasks"], "write": ["tasks"] }
+  ]
+}
