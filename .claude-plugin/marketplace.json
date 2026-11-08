@@ -1,0 +1,12 @@
+{
+  "name": "lowcoding-airtable",
+  "owner": { "name": "lowcoding.dev" },
+  "description": "Move a small company off Airtable onto its own CRM (Next.js, Supabase, Vercel, GitHub), planned from what is in the base.",
+  "plugins": [
+    {
+      "name": "airtable-exit",
+      "source": "./",
+      "description": "One setup command: connects Airtable, inventories the base, writes a discovery report, then builds, deploys and migrates your own CRM."
+    }
+  ]
+}

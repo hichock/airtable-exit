@@ -1,0 +1,10 @@
+{
+  "name": "airtable-exit",
+  "version": "0.1.0",
+  "description": "Move off Airtable onto your own CRM. /airtable-exit:setup connects Airtable, reads the base (tables, automations, interfaces, people, usage), writes a discovery report for approval, then creates the repo, Supabase database and Vercel app, and installs the skills and knowledge base that run the migration.",
+  "author": { "name": "lowcoding.dev", "url": "https://lowcoding.dev" },
+  "homepage": "https://lowcoding.dev",
+  "repository": "https://github.com/lowcoding-dev/airtable-exit",
+  "license": "MIT",
+  "keywords": ["airtable", "migration", "crm", "supabase", "nextjs", "vercel"]
+}
