@@ -12,8 +12,12 @@ function db(): DemoData {
   return (g.__airtableExitDemo ??= buildSeed());
 }
 
+/** Sample rows only fit the example schema. A table whose primary field the seed lacks starts empty. */
 function rowsOf(t: TableDef): Row[] {
-  return (db().tables[t.key] ??= []);
+  const tables = db().tables;
+  const rows = tables[t.key];
+  if (rows?.length && !(t.primaryField in (rows[0] as Row))) tables[t.key] = [];
+  return (tables[t.key] ??= []);
 }
 
 const k = (t: TableDef, id: string) => `${t.key}:${id}`;
@@ -52,12 +56,12 @@ export const demoStore: Store = {
     return db().people;
   },
 
-  async update(t: TableDef, id: string, patch: Record<string, unknown>, actor: Actor) {
+  async update(t: TableDef, id: string, patch: Record<string, unknown>, actor: Actor | null) {
     const r = rowsOf(t).find((x) => x.id === id);
     if (!r) throw new Error(`Could not find ${t.singular ?? "record"} ${id}`);
     const log = (db().activity[k(t, id)] ??= []);
     for (const [field, value] of Object.entries(patch)) {
-      log.unshift({ id: crypto.randomUUID(), actor: actor.name, action: "update", field, oldValue: r[field], newValue: value, createdAt: new Date().toISOString() });
+      log.unshift({ id: crypto.randomUUID(), actor: actor?.name ?? "Automation", action: actor ? "update" : "automation", field, oldValue: r[field], newValue: value, createdAt: new Date().toISOString() });
       r[field] = value;
     }
     r.updated_at = new Date().toISOString();

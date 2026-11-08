@@ -16,4 +16,4 @@ trap cleanup EXIT
 PSQL=(psql -h "$DIR" -p "$PORT" -U postgres -d postgres -v ON_ERROR_STOP=1 -q)
 "${PSQL[@]}" -f supabase/tests/stub-supabase.sql
 for f in supabase/migrations/*.sql; do echo "apply $f"; "${PSQL[@]}" -f "$f"; done
-"${PSQL[@]}" -f supabase/tests/rls.sql
+for f in supabase/tests/rls*.sql; do echo "check $f"; "${PSQL[@]}" -f "$f"; done

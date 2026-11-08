@@ -109,3 +109,11 @@ test("access mirrors app_can()", () => {
   assert.equal(canAccess(schema, "pending", "tasks", "read"), false);
   assert.equal(canAccess(schema, null, "tasks", "read"), false);
 });
+
+test("demo: a table that doesn't match the sample data starts empty instead of showing wrong rows", async () => {
+  resetDemo(NOW);
+  const other: TableDef = { key: "deals", label: "Deals", primaryField: "deal_name", fields: [{ key: "deal_name", label: "Deal", type: "text" }], views: [{ key: "all", label: "All", type: "grid" }] };
+  const page = await demoStore.list(other, { filters: [], sorts: [], page: 1, pageSize: 10 });
+  assert.equal(page.total, 0);
+  resetDemo(NOW);
+});

@@ -107,3 +107,32 @@ test("client errors name the status and path", async () => {
   const { deps } = fakeDeps([{ status: 403, body: "INVALID_PERMISSIONS" }]);
   await assert.rejects(new AirtableClient("t", deps).get("meta/bases"), /Airtable 403 on meta\/bases: INVALID_PERMISSIONS/);
 });
+
+import { splitPeople, summarizeRecords } from "./inventory.ts";
+
+test("usage summary: fill rate, months, duplicates, attachment bytes, people", () => {
+  const u = summarizeRecords(
+    { primaryFieldId: "fldN", fields: [{ id: "fldN", type: "singleLineText" }, { id: "fldF", type: "multipleAttachments" }, { id: "fldB", type: "createdBy" }, { id: "fldE", type: "email" }] },
+    [
+      { id: "r1", createdTime: "2026-01-05T00:00:00Z", fields: { fldN: "Acme", fldF: [{ size: 1000 }, { size: 500 }], fldB: { id: "usr1" } }, commentCount: 2 },
+      { id: "r2", createdTime: "2026-02-01T00:00:00Z", fields: { fldN: "acme ", fldB: { id: "usr1" } } },
+      { id: "r3", createdTime: "2026-02-03T00:00:00Z", fields: { fldN: "Other", fldE: "" } },
+    ],
+  );
+  assert.deepEqual(u.createdByMonth, { "2026-01": 1, "2026-02": 2 });
+  assert.equal(u.duplicatePrimary, 2);
+  assert.deepEqual(u.attachments, { files: 2, bytes: 1500 });
+  assert.equal(u.fields.fldE?.fillRate, 0);
+  assert.equal(u.fields.fldN?.fillRate, 1);
+  assert.equal(u.fields.fldF?.fillRate, 0.333);
+  assert.deepEqual(u.people, { usr1: 2 });
+  assert.equal(u.commentRecords, 1);
+  assert.equal(u.firstCreated, "2026-01-05T00:00:00Z");
+});
+
+test("people: counts by permission level for kb, emails only in the people list", () => {
+  const r = splitPeople({ collaborators: { baseCollaborators: { individualCollaborators: [{ userId: "u1", email: "a@example.com", permissionLevel: "create" }, { userId: "u2", email: "b@example.com", permissionLevel: "edit" }] }, workspaceCollaborators: { individualCollaborators: [{ userId: "u3", email: "c@example.com", permissionLevel: "edit" }] } } });
+  assert.deepEqual(r.counts, [{ permissionLevel: "create", count: 1, via: "base" }, { permissionLevel: "edit", count: 1, via: "base" }, { permissionLevel: "edit", count: 1, via: "workspace" }]);
+  assert.ok(!JSON.stringify(r.counts).includes("@"));
+  assert.equal(r.people.length, 3);
+});

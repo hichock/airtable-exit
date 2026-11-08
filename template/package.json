@@ -4,7 +4,9 @@
   "private": true,
   "description": "Your own CRM after Airtable: Next.js + Supabase, driven by app.schema.json.",
   "license": "MIT",
-  "engines": { "node": ">=20.11" },
+  "engines": {
+    "node": ">=20.11"
+  },
   "scripts": {
     "dev": "next dev",
     "demo": "DEMO=1 next dev",
@@ -17,7 +19,10 @@
     "schema:from-airtable": "tsx scripts/schema-from-airtable/cli.ts",
     "migrate:copy": "tsx scripts/migrate/copy.ts",
     "migrate:parity": "tsx scripts/migrate/parity.ts",
-    "report:html": "tsx scripts/report/render.ts"
+    "report:html": "tsx scripts/report/render.ts",
+    "invite": "tsx scripts/invite.ts",
+    "test:migrations": "bash scripts/test-migrations-local.sh",
+    "airtable:inventory": "tsx scripts/airtable/inventory.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

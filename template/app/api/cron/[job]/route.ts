@@ -42,6 +42,8 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ job: string
   if (!fn) return NextResponse.json({ error: `unknown job ${job}` }, { status: 404 });
   const mode = getMode();
   const db = mode.kind === "supabase" ? adminClient(mode.url) : null;
-  const result = await withRun(db, job, () => fn({ db }));
+  // Rebuilt automations stay off until cutover, so they never double-fire with Airtable's own automations.
+  const gated = job !== "sync" && mode.kind === "supabase" && process.env.AUTOMATIONS_ENABLED !== "1";
+  const result = await withRun(db, job, gated ? async () => ({ items: 0, skipped: "AUTOMATIONS_ENABLED is not 1 (turn on at cutover)" }) : () => fn({ db }));
   return NextResponse.json(result, { status: result.status === "error" ? 500 : 200 });
 }

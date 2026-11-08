@@ -91,9 +91,10 @@ export function supabaseStore(client: SupabaseClient): Store {
     }
   }
 
+  // actor null = automation or public form (service-role client): logged without a person.
   async function logActivity(t: TableDef, id: string, actor: Actor | null, rows: { action: string; field?: string; old_value?: unknown; new_value?: unknown }[]) {
-    if (!actor || !rows.length) return;
-    const { error } = await client.from("activity").insert(rows.map((r) => ({ table_key: t.key, record_id: id, actor_id: actor.id, ...r })));
+    if (!rows.length) return;
+    const { error } = await client.from("activity").insert(rows.map((r) => ({ table_key: t.key, record_id: id, actor_id: actor?.id ?? null, ...r, action: actor || r.action === "create" ? r.action : "automation" })));
     fail("activity", error);
   }
 
@@ -166,7 +167,7 @@ export function supabaseStore(client: SupabaseClient): Store {
       return (data ?? []).map((p) => ({ id: p.id, email: p.email, name: p.full_name || p.email, role: p.role }));
     },
 
-    async update(t: TableDef, id: string, patch: Record<string, unknown>, actor: Actor) {
+    async update(t: TableDef, id: string, patch: Record<string, unknown>, actor: Actor | null) {
       const before = await byIds(t, [id]);
       const { columns, links } = patchToDb(t, patch);
       if (Object.keys(columns).length) {

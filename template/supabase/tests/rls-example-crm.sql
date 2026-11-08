@@ -1,13 +1,6 @@
--- RLS checks as real roles (not by reading policies). Run by scripts/test-migrations-local.sh.
-grant select, insert, update, delete on all tables in schema public to authenticated;
-grant usage, select on all sequences in schema public to authenticated;
+-- RLS checks for the example agency CRM (companies, deals, tasks; roles viewer and portal).
+-- Replace this file with checks for your own tables when you replace the example schema (schema-designer).
 \set ON_ERROR_STOP 1
-insert into auth.users (id, email) values
-  ('00000000-0000-0000-0000-000000000001', 'admin@example.com'),
-  ('00000000-0000-0000-0000-000000000002', 'viewer@example.com'),
-  ('00000000-0000-0000-0000-000000000003', 'portal@example.com'),
-  ('00000000-0000-0000-0000-000000000004', 'new@example.com');
-update public.profiles set role = 'admin' where email = 'admin@example.com';
 update public.profiles set role = 'viewer' where email = 'viewer@example.com';
 update public.profiles set role = 'portal' where email = 'portal@example.com';
 insert into public.companies (id, name, status) values ('10000000-0000-0000-0000-000000000001', 'Acme Test', 'Lead');

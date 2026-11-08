@@ -78,7 +78,8 @@ export interface Store {
   /** Rows of `src` whose link field points at any of `ids`. */
   linking(src: TableDef, linkField: FieldDef, ids: string[]): Promise<Row[]>;
   people(): Promise<Person[]>;
-  update(t: TableDef, id: string, patch: Record<string, unknown>, actor: Actor): Promise<void>;
+  /** actor null = an automation or job (activity is logged as "automation"). */
+  update(t: TableDef, id: string, patch: Record<string, unknown>, actor: Actor | null): Promise<void>;
   create(t: TableDef, values: Record<string, unknown>, actor: Actor | null): Promise<string>;
   comments(t: TableDef, id: string): Promise<CommentItem[]>;
   addComment(t: TableDef, id: string, body: string, actor: Actor): Promise<void>;
