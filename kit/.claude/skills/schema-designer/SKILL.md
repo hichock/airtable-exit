@@ -14,14 +14,15 @@ and kb/decisions.md first. Mapping facts: [references/type-mapping.md](reference
    It skips tables/fields marked `"migrate": false`, keeps one side of each link pair, maps types, turns rollups and
    lookups into SQL views, and tries every formula as a generated column (else `mode: "app"` with the reason).
 3. Work through `kb/schema.md` top to bottom. For every `check` / `rebuild` row decide and write the result:
-   - Single-link check: confirm no record links to more than one (sample the inventory or ask the owner). If some
-     do, set `"multiple": true`.
+   - Single-link check: confirm no record links to more than one by sampling records (read-only). If some do, set
+     `"multiple": true`. Don't ask the owner what the data can answer.
    - Guessed rollups: compare 5 records' Airtable values with what the function would give; fix `fn`.
    - App formulas: the app evaluates TODAY(), NOW(), DATETIME_DIFF and the basics. Others (REGEX_*, WORKDAY,
      DATETIME_FORMAT, ARRAYJOIN…) need TypeScript: add a function in `lib/formula/` with a test, or drop the field
      with the owner's OK.
-   - Views: add `filters`, `sorts`, `by` and `cardFields` from the screenshots described in kb/airtable/interfaces.md.
-     Kanban/calendar grouping fields were guessed: confirm.
+   - Views: add `filters`, `sorts`, `by` and `cardFields` from the screenshots described in kb/airtable/interfaces.md
+     if the owner sent any, else from the approved plan's best guesses (view names, grouping fields). Leave a
+     `check` note on each guess; the owner sees them in the preview.
    - Primary field: must be a plain text field. Currency: check the code (`USD`, `EUR`…). Select colours come over.
 4. Replace the example: delete `supabase/migrations/0002_example_crm.sql` **only if it was never applied** to this
    project's database (check `supabase migration list`). The demo seed in `lib/demo/seed.ts` is for the example CRM;
@@ -30,7 +31,9 @@ and kb/decisions.md first. Mapping facts: [references/type-mapping.md](reference
 6. Generate SQL: `npm run schema:sql -- <base_name>` → `supabase/migrations/<n>_<base_name>.sql`. Read it.
 7. Test: `npm run test:migrations` (applies every migration to a throwaway Postgres and runs the RLS checks).
    Add a check to `supabase/tests/rls.sql` for each table that must be hidden from a role.
-8. Apply: `supabase db push`. Then `npm run typecheck && npm test && npm run build`.
+8. Apply with the path setup chose (kb/decisions.md): `supabase db push` (CLI), or the Supabase connector's
+   `apply_migration` tool with each new file's SQL, in file order, named like the file. Keep to one path per project:
+   the two record applied migrations differently. Then `npm run typecheck && npm test && npm run build`.
 
 ## B. Later changes (after the first push)
 - Never edit an applied migration. Edit `app.schema.json`, then write a **new** migration by hand for the delta

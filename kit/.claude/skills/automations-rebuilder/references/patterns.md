@@ -5,7 +5,7 @@ read 2026-11-08). Targets are our choices (**assumed**). Vercel cron syntax: `ve
 
 | Airtable trigger | Target here | Notes |
 |---|---|---|
-| At a scheduled time | Vercel cron → `/api/cron/<job>` (JOBS registry) | Cron is UTC. Hobby allows daily jobs only (assumed: check the Vercel plan) |
+| At a scheduled time | Vercel cron → `/api/cron/<job>` (JOBS registry) | Cron is UTC. Vercel Hobby (free) allows daily jobs only, timing within the hour (sourced, Vercel cron docs, 2026-11-09) |
 | When a record is created | Server action after `store.create`, or Postgres `after insert` trigger + pg_net | App path is simpler; trigger catches every writer |
 | When a record is updated / matches conditions | Compare old/new in `updateFieldAction`, or `after update` trigger with a `when (old.x is distinct from new.x)` clause | Guard against imports |
 | When a form is submitted | `createRecordAction` / `submitPublicFormAction` | Public forms run with the service role |

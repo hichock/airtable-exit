@@ -1,11 +1,14 @@
 ---
 name: process-map
-description: ALWAYS use this skill when the owner asks how their team works in Airtable, what each automation or interface is for, who does which step, or when the discovery needs the owner's answers. It turns the inventory (automations, interfaces, views, people) into plain-language processes like "lead → deal → invoice" in kb/processes.md, and asks the owner at most 8 questions for what the API cannot see (screenshots, script code, Zapier/Make, outside users, pains), saving answers in kb/context.md.
+description: ALWAYS use this skill when the owner asks how their team works in Airtable, what each automation or interface is for, who does which step, or right after usage-analysis. It reads the inventory (automations, interfaces, views, people, activity) and drafts the business processes in plain words ("lead → deal → invoice") in kb/processes.md, without asking the owner anything. Everything it cannot see becomes a gap with a best guess and a way to handle it, which the plan skill puts in front of the owner for one approval.
 ---
-# Process map
+# Process map (no questions)
 
 Read kb/RULES.md, kb/context.md, kb/airtable/inventory.md, kb/airtable/automations.md and kb/airtable/usage.md first.
-Questions: [references/questions.md](references/questions.md).
+Gaps and default guesses: [references/questions.md](references/questions.md).
+
+Do not ask the owner questions here. Draft from the data, guess where you must, label the guess, and move on.
+The owner corrects the draft once, when they read the plan.
 
 ## 1. Draft the processes from the data
 A process is a chain of work that moves records through states. Find them from:
@@ -16,24 +19,24 @@ A process is a chain of work that moves records through states. Find them from:
 - Activity: tables with the most records created per month are where daily work happens.
 
 For each process write in `kb/processes.md` (format is in the file's comment): trigger, steps (role, table or
-interface, what changes), automations, external tools, data, pains, and "In the new app" (page, automation, role;
-fill later). Mark each line `measured` (seen in data) or `assumed` (your reading).
+interface, what changes), automations, external tools, data, pains, and "In the new app" (page, automation, role).
+Mark each line `measured` (seen in data) or `assumed` (your reading).
 
-## 2. Ask the owner (max 8 questions, one at a time)
-Use the table in references/questions.md. Before each question, show your draft answer from the data and ask
-"what's wrong or missing?". Skip questions already answered in `kb/context.md`.
-- Screenshots and script code: ask the owner to drop files in `.migrate/screenshots/` or paste code. Describe each
-  screenshot in words in `kb/airtable/interfaces.md` (layout, filters, sorts, numbers shown). No personal data.
-- Write each answer to `kb/context.md` under its heading, labelled `stated` with the date.
-- New rules from answers ("never email clients automatically") go to `kb/decisions.md`.
+## 2. List the gaps, each with a best guess
+For every item in [references/questions.md](references/questions.md) that the data does not settle, write one line in
+`kb/processes.md` → "Gaps": what is unknown, your best guess (labelled `assumed`), how the build handles it if
+nobody answers, and what would make it better (for example "a screenshot of the Sales interface").
+Also add what discover could not read (its "Not read" list).
+Never block on a gap. The default handling must let the build go on.
 
-## 3. Fill the gaps
-After the answers, update `kb/processes.md`: confirmed lines become `stated`; add the external tools the owner
-named to `kb/context.md` → Tools, with "reads/writes" and "breaks when record ids change: yes/no".
-Anything still unknown stays `needs input` and goes to the report's owner to-do list.
+## 3. Owner-supplied files, if they come
+If the owner offers screenshots or script code (now or later), take them: files go to `.migrate/screenshots/` or
+`.migrate/scripts/` (gitignored). Describe each screenshot in words in `kb/airtable/interfaces.md` (layout,
+filters, sorts, numbers shown), without personal data. Update the matching gap to `stated`.
 
 ## 4. Tell the owner
-List the processes in one line each and the open items. Suggest `/plan`.
+One line per process and the number of gaps. Say: "I'll put these in the plan with my best guesses; you can
+correct anything there." Then run `/plan`.
 
-Write kb/runs/<YYYY-MM-DD>-process-map.md; update kb/README.md status (processes: draft, context: draft)
-and tick step 6 in kb/setup-state.md if setup is running.
+Write kb/runs/<YYYY-MM-DD>-process-map.md; update kb/README.md status (processes: draft)
+and tick step 4 (Base read) in kb/setup-state.md if setup is running.

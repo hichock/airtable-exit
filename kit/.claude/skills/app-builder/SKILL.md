@@ -18,8 +18,10 @@ Most of what Airtable views and interfaces do is config in `app.schema.json`:
 - **Roles**: `roles[]` decides which tables each role sees in the menu and can edit.
 After each change: `npm run schema:check`.
 
-## 2. From interface screenshots
-For each page in kb/airtable/interfaces.md: list its elements (numbers, charts, lists, filters, buttons). Map each
+## 2. From interfaces (MCP pages, plus screenshots if the owner sent any)
+Work from what discover read (page names, types, tables, form schemas) and the plan's defaults. Don't wait for
+screenshots: build the default (one dashboard per interface page), show the preview, and improve when screenshots
+arrive. For each page in kb/airtable/interfaces.md: list its elements (numbers, charts, lists, filters, buttons). Map each
 to a tile, chart, view or form. What can't be config (a button that runs a script, a custom layout) becomes a
 custom page or an automation. Write the mapping in kb/airtable/interfaces.md ("→ dashboard overview, tile 2").
 

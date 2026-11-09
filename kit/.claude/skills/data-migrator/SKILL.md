@@ -15,11 +15,14 @@ from <base> into <Supabase project>. Airtable is only read. OK?"
 - `.env.local` has `AIRTABLE_PAT`, `AIRTABLE_BASE_ID`, `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`.
 - Migrations applied: `supabase migration list` shows every local file as applied remotely.
 - `app.schema.json` tables and fields carry `airtable.id` (written by schema-designer). `npm run schema:check` passes.
-- People first: invite the team (`/roles-and-access`) so `createdBy` and person fields map to profiles. Unmapped
-  people are reported, never invented; you can re-run after inviting them.
+- People first: the team is invited (`/roles-and-access` runs before this skill) so `createdBy` and person fields
+  map to profiles. If nobody is invited yet, stop and suggest `/roles-and-access` first. Unmapped people are
+  reported, never invented; you can re-run after inviting them.
 - Budget: records ÷ 100 calls per table (+ comments: 1 call per record that has comments). On Team plans compare
   with the 100,000 monthly calls (kb/airtable/usage.md → API budget).
-- Storage: total attachment GB vs the Supabase plan; any file over 50 MB needs Pro.
+- Storage: total attachment GB vs the plan (Supabase Free: 1 GB in total, 50 MB per file). Files over the per-file
+  limit are skipped and listed (`MAX_FILE_MB`, default 50; set it higher only on Pro). The plan says what happens to
+  them: linked from existing storage, or an upgrade.
 
 ## 2. Copy
 ```bash
@@ -38,14 +41,17 @@ If it stops halfway: fix the cause, run the same command again. Upserts make it 
 ```bash
 npm run migrate:parity -- --sample 20
 ```
-Per table: Airtable count vs Supabase count, and a field-by-field diff of 20 random records after normalising
-(dates to UTC, empty → null, arrays sorted). Exit code 1 if anything differs; details in `.migrate/parity-report.json`.
+Per table: Airtable count vs Supabase count, Airtable ids missing in Supabase, Supabase rows whose Airtable record
+no longer exists (deleted in Airtable), and a field-by-field diff of 20 random records after normalising (dates to
+UTC, empty → null, arrays sorted). Exit code 1 if anything differs; details in `.migrate/parity-report.json`.
 
 Then check by hand (SQL in the Supabase SQL editor; paste results as counts only):
 - Link parity: for each link field, count of links per side matches Airtable (e.g. deals with a company).
 - Computed parity: rebuilt formulas and rollups vs the values Airtable showed (from the snapshot). List
   mismatches; don't hide them.
-- Attachments: files and bytes match `kb/airtable/usage.md`; open three files from the app.
+- Attachments: files and bytes match `kb/airtable/usage.md` minus the skipped big files; open three files from the app.
+- Big files skipped: list them for the owner (table, record id, file name, size from `.migrate/copy-report.json`)
+  with the choice from the plan.
 
 ## 4. Fix and repeat
 Mismatches usually come from: a single link that held two records (set `multiple: true`, new migration), a select

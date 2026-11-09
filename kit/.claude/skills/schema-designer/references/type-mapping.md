@@ -22,7 +22,7 @@ Labels: **sourced**, **assumed**. `scripts/schema-from-airtable/map.ts` implemen
 | multipleLookupValues | SQL view `<table>_computed` | Values are arrays even for one link (sourced) |
 | rollup / count | SQL view (subquery aggregate) | **Function not exposed**: infer from values; recompute, don't import as truth (sourced) |
 | formula | same-row and immutable → `GENERATED ALWAYS AS (...) STORED`; NOW()/TODAY()/other rows → computed in the app | Generated columns allow only immutable functions on the current row, no subqueries (sourced: Postgres docs). Date → text casts are not immutable (sourced) |
-| multipleAttachments | Supabase Storage object + `attachments` row (record_id, field, path, filename, mime, size) | URLs expire 2 h after the API returns them; Free plan 50 MB per file (sourced) |
+| multipleAttachments | Supabase Storage object + `attachments` row (record_id, field, path, filename, mime, size) | URLs expire 2 h after the API returns them; Free plan 50 MB per file, 1 GB in total (sourced); bigger files are skipped by the copy and linked instead |
 | barcode | `text` | Barcode type dropped (assumed) |
 | button | no column; rebuild as an action on the record page | Keep the URL template (assumed) |
 | aiText | `text` with the current value | Regenerate with an Edge Function if needed (assumed) |

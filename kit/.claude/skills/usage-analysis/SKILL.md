@@ -13,7 +13,9 @@ Inputs only. No new Airtable calls unless a number is missing; then say which ca
 From `bases[].tables[].usage` in inventory.json:
 - records, created per month (last 12), first and last created, `modifiedLast90d` (null if not measured).
 - Stale if no record created in 90 days AND `modifiedLast90d` is 0 or null AND no automation uses the table.
-- Attachments: files and MB; compare with the target plan (Supabase Free: 50 MB per file; Pro: 100 GB included).
+- Attachments: files, MB, largest file and files over 50 MB (`attachments.largestBytes`, `overLimit`). Compare with
+  Supabase Free (50 MB per file, 1 GB in total). Over the limit → a line for the plan: link from existing storage, or
+  upgrade (plan/references/prices.md).
 - Duplicates in the primary field (`duplicatePrimary`), and comment-heavy tables (`commentRecords`).
 
 ## 2. Per field
@@ -46,11 +48,12 @@ Records ÷ 100 = calls for one full copy, per table. Add the nightly delta for a
 
 ## 6. Write kb/airtable/usage.md
 Status: draft, date. Sections: Summary (5 lines max) · Tables · Fields to drop (proposed, with the four reasons) ·
-Broken formulas · Data quality · Views and interfaces · Seats · API budget · Questions for the owner.
+Broken formulas · Data quality · Views and interfaces · Seats · API budget · Open points (for the plan's gaps).
 Label: counts are `measured` (with date and n); smells and staleness are `assumed`.
 The drop list is a proposal. The `plan` skill applies it only after the owner approves.
 
 ## 7. Tell the owner
-Three lines: what is used, what looks dead (counts), and any risk (budget, data quality). Suggest `/process-map`.
+Three lines: what is used, what looks dead (counts), and any risk (budget, data quality, file limits). Then run
+`/process-map` (during setup, without waiting).
 
 Write kb/runs/<YYYY-MM-DD>-usage-analysis.md; update kb/README.md status (usage: draft).

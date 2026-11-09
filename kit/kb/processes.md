@@ -12,3 +12,7 @@ Status: empty. Written by `process-map`. One section per process the base runs.
 - Pains / gaps: stated or assumed
 - In the new app: page, automation, role
 -->
+
+## Gaps
+<!-- One line per thing the data can't settle (see .claude/skills/process-map/references/questions.md):
+- <gap>. Best guess: … (assumed). Default handling: …. Better with: … (optional) -->

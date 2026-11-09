@@ -8,7 +8,9 @@ repo stats; all read 2026-11-08. **sourced** unless marked.
   of pure requests (**derived**). Attachment downloads come from Airtable's file CDN, not the API (**assumed**).
 - Team plan: 100,000 API calls per workspace per month, then throttled to 2 req/s. Free: 1,000. MCP calls count too.
 - Attachment URLs expire 2 hours after the API returns them: download in the same pass.
-- Supabase Free: 50 MB per uploaded file; Pro: 100 GB files included, larger files allowed.
+- Supabase Free: 50 MB per uploaded file and 1 GB in total; Pro: 100 GB files included, per-file limit up to 500 GB
+  (supabase.com/pricing and storage file-limits docs, read 2026-11-09). The copy skips files over `MAX_FILE_MB`
+  (default 50) and lists them in `.migrate/copy-report.json`.
 - Revision history is not copied (Enterprise-only API). Comments are copied with `--comments`.
 
 Tools to reuse instead of rebuilding (stars and dates from GitHub API, 2026-11-08):

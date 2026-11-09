@@ -33,3 +33,9 @@ Labels: `measured`, `sourced`, `stated`, `assumed`, `needs input`.
 
 ## Target stack
 - GitHub repo: needs input · Supabase project ref: needs input · Vercel URL: needs input
+- Plans: Supabase Free and Vercel Hobby by default (free). Upgrade only when a limit is reached: needs input
+- Where this runs: local or cloud session (setup writes it)
+
+## Owner contact (for help requests only)
+The owner's own contact, written only with their OK, used by `get-help`. Nobody else's details.
+- Email: needs input · Telegram: needs input · Other: needs input

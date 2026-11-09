@@ -18,8 +18,8 @@ Use the skill. Do not do these tasks freehand.
 |---|---|---|
 | "what's in our Airtable", "scan the base", "inventory", "what do we have" | `discover` | `kb/airtable/inventory.md`, `inventory.json` |
 | "what do we actually use", "dead fields", "who uses what", "clean up before moving" | `usage-analysis` | `kb/airtable/usage.md` |
-| "how do we work", "our processes", "what does each automation do" | `process-map` | `kb/processes.md`, `kb/context.md` |
-| "plan it", "what will it cost", "report", "should we move" | `plan` | `kb/plan.md`, `kb/report.md`, `docs/report.html` |
+| "how do we work", "our processes", "what does each automation do" | `process-map` (drafts from data, asks nothing) | `kb/processes.md`, `kb/context.md` |
+| "plan it", "what will it cost", "report", "should we move" | `plan` (one report, one approval) | `kb/plan.md`, `kb/report.md`, `docs/report.html` |
 | "design the database", "tables", "schema", "add a field", "change a field" | `schema-designer` | `app.schema.json`, `supabase/migrations/*`, `kb/schema.md` |
 | "build the pages", "dashboard", "make it look like our interface", "add a view" | `app-builder` | `app.schema.json`, `app/`, `components/` |
 | "copy the data", "import", "migrate records", "check the numbers match" | `data-migrator` (owner runs `/data-migrator`) | Supabase rows, `kb/runs/` |
@@ -29,9 +29,22 @@ Use the skill. Do not do these tasks freehand.
 | "is everything ok", "errors", "health", weekly scheduled run | `health` | `kb/runs/` |
 | "remember", "from now on", "don't do X", "we decided" | `kb-keeper` | `kb/decisions.md` etc. |
 | "tidy the kb", "what do you need from me" | `kb-tidy` | `kb/README.md` |
+| "help", "I'm stuck", "this doesn't work", "contact the author", the same error twice | `get-help` | a request to the bundle's author, `kb/runs/` |
 
 Order of a migration: discover → usage-analysis → process-map → plan (owner approves) → schema-designer →
-app-builder → data-migrator → automations-rebuilder → roles-and-access → sync-and-cutover → health (weekly).
+app-builder → roles-and-access (invite people) → data-migrator → automations-rebuilder → sync-and-cutover →
+health (weekly). People are invited before the copy so "created by" and person fields map to real accounts.
+
+## Ask as little as possible
+The owner may not be technical. Read what can be read, do what is clear, and put everything open into one plan
+the owner approves or comments on. Do not run question rounds. Ask only what nothing else can answer
+(which base, approval, a "go" for data-changing steps), one thing at a time. Screenshots and script code are
+optional suggestions inside the plan, never a blocking question.
+
+## When the owner is stuck
+If a step fails twice, or the owner asks for help, use `get-help`. It summarises the problem (no secrets, no
+third-party personal data), confirms the owner's contact details, and sends the request to the bundle's author
+(Mark, lowcoding.dev). Fallback: email info@lowcoding.dev.
 
 ## Code rules (full version: `kb/dev-rules.md`)
 - **Preview first.** Work on a branch, push, check the Vercel preview, show the owner, then merge. Previews share
@@ -56,8 +69,10 @@ app-builder → data-migrator → automations-rebuilder → roles-and-access →
 ## Never
 - Never put a token, key or password in `kb/`, a commit, a log or the chat. Secrets live in `.env.local` and Vercel.
 - Never write to Airtable. It stays the source of truth until cutover, and read-only for 30 days after.
+  `.claude/settings.json` denies the Airtable MCP's create, update and delete tools; don't work around it.
 - Never copy personal data (names, emails, phones, record contents) into `kb/`. Counts and aggregates only.
-  People lists for invites stay in `.migrate/` (gitignored).
+  People lists for invites stay in `.migrate/` (gitignored). One exception: the owner's own contact for help
+  requests in `kb/context.md`, only with their OK.
 - Never invent a number. Label it `measured`, `sourced`, `stated`, `assumed` or `needs input`.
 - Never run `data-migrator` or `sync-and-cutover` steps unless the owner started that skill.
 - Never edit an applied migration, disable RLS, or use the service-role key in browser code.

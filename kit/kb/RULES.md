@@ -29,7 +29,8 @@ These rules apply to every session, every skill and every scheduled run.
 - **Owner corrections become rules.** When the owner corrects you, add the rule to `decisions.md` so it never
   happens twice.
 - **No secrets** (API keys, tokens, passwords) and **no personal data exports** (lists of names, emails, phones)
-  in `kb/`. Aggregates and counts only; raw data stays in the database.
+  in `kb/`. Aggregates and counts only; raw data stays in the database. One exception: the owner's own contact
+  in `kb/context.md` → "Owner contact", written with their OK, for help requests.
 
 ## Airtable-specific
 - **Schema is fine, records are not.** Table, field, view and option names may go in `kb/`. Record contents,

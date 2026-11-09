@@ -23,6 +23,7 @@ the change in decisions.md). Hand-built comparison and the parallel run are **so
 Hand-built comparison (sourced, WitsCode): grid with inline edit 3–5 days, saved views ~2, Kanban ~1, database ~2;
 Interfaces "a separate two-week engagement"; whole build 3 weeks + 3–5 days parallel run for an 8-user base.
 
-Step order for plan.md (sourced: Airtable exit research §6, 2026-11-08):
-1 connect · 2 inventory · 3 usage · 4 owner interview · 5 process map · 6 report and approval · 7 target schema ·
-8 app pages · 9 data copy · 10 automations · 11 roles/RLS · 12 parallel run · 13 cutover.
+Step order for plan.md (based on Airtable exit research §6, 2026-11-08; changed 2026-11-09: no interview round,
+gaps go into the plan; people are invited before the data copy so person fields map):
+1 connect · 2 inventory · 3 usage · 4 process map with gaps · 5 plan and approval · 6 target schema ·
+7 app pages · 8 roles, invites, RLS · 9 data copy · 10 automations · 11 parallel run · 12 cutover.

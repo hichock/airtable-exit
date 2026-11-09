@@ -3,7 +3,8 @@
 Source: Airtable exit research §6, 2026-11-08 (checks are **assumed** best practice, consistent with WitsCode,
 Scroll and Softr guides). Record each as pass / fail / n.a. with the number in kb/cutover.md.
 
-- [ ] **Row-count parity** per table: Airtable count vs `select count(*)` (`npm run migrate:parity`).
+- [ ] **Row-count parity** per table: Airtable count vs `select count(*)` (`npm run migrate:parity`), with no ids
+      missing and no `extra` rows left (deleted in Airtable, removed or kept with the owner's OK).
 - [ ] **Sample diff:** 50 random records per table, field by field, after normalising (dates to UTC, empty → NULL,
       arrays sorted). `npm run migrate:parity -- --sample 50`.
 - [ ] **Link parity:** for every link field, the count of links per side matches.
@@ -16,6 +17,6 @@ Scroll and Softr guides). Record each as pass / fail / n.a. with the number in k
       access (RLS tests per role pass: `npm run test:migrations`).
 - [ ] **Forms and links:** each public form URL works; old embeds are updated or listed for the owner.
 - [ ] **Integrations:** each tool in kb/context.md → Tools is switched or marked "retired" by the owner.
-- [ ] **Backups:** latest snapshot in `.migrate/snapshot/` kept; Supabase backups on (Pro has daily backups;
-      check the plan).
+- [ ] **Backups:** latest snapshot in `.migrate/snapshot/` kept. Supabase Free has no daily backups (sourced:
+      Supabase backups docs, read 2026-11-09); keep the snapshot and plan a regular export, or upgrade for daily backups.
 - [ ] **Rollback plan** written with a deadline.

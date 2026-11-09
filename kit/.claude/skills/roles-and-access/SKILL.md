@@ -1,6 +1,6 @@
 ---
 name: roles-and-access
-description: ALWAYS use this skill when the owner talks about people and permissions: "invite the team", "who can see what", "give Anna edit access", "clients should only see their own projects", "remove a user", "roles", "permissions", or before the data copy so people map correctly. It turns Airtable collaborators into Supabase Auth invites with roles, maps interface-only users to a portal role, and writes and tests the RLS policies.
+description: ALWAYS use this skill when the owner talks about people and permissions: "invite the team", "who can see what", "give Anna edit access", "clients should only see their own projects", "remove a user", "roles", "permissions", and always before the data copy, so people map correctly. It turns Airtable collaborators into Supabase Auth invites with roles, maps interface-only users to a portal role, and writes and tests the RLS policies.
 ---
 # Roles and access
 
@@ -20,12 +20,12 @@ Roles and their table access live in `app.schema.json` → `roles` (read/write l
 The database mirrors them in `app_roles` (written by the generated migration) and enforces them with
 `app_can(table, action)` in every policy.
 
-## 2. Decide with the owner
-Show counts per role and the seats with no recorded activity (kb/airtable/usage.md). Ask:
-- Who is not invited at all (left the company, never logs in)?
-- What each outside group may see (tables) and edit. Do they need row-level limits (a client sees only their
-  company's records)?
-Write answers to kb/context.md (`stated`) and the rules to kb/decisions.md.
+## 2. Propose, then one confirmation
+Start from the approved plan (roles, outside users). Show one proposal: counts per role, who is invited (default:
+people with recorded activity), who is not (default: seats with no recorded activity, listed as a count), and any
+row-level limits the plan named. Ask once: "Invite these people now?" Inviting sends each person a sign-in email.
+If the owner prefers to wait, invite the admins only; re-running the copy after later invites fixes person fields.
+Write changes to kb/context.md (`stated`) and the rules to kb/decisions.md.
 
 ## 3. Invite
 For each person to invite (from `.migrate/people.json`):
@@ -53,7 +53,7 @@ extend it in the same migration for `company_id`).
 ## 5. Test as each role
 Add cases to `supabase/tests/rls.sql` (it runs as viewer, portal, pending and admin with `set role authenticated`
 and `request.jwt.claims`): what each role must see, must not see, must not change. Then `npm run test:migrations`.
-Policies that read fine still leak; only these tests count. Then `supabase db push`.
+Policies that read fine still leak; only these tests count. Then apply it the way schema-designer step A8 says.
 
 ## 6. Write down
 kb/access.md: roles, what each can do, row-level rules, counts per role (no names), date of last review.

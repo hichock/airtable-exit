@@ -16,6 +16,6 @@ Read kb/RULES.md, kb/context.md and kb/README.md first.
 5. **Open questions:** collect every `needs input` in `kb/`. Show the owner a short numbered list. Write their
    answers back where the question was, labelled `stated`.
 6. **Privacy sweep:** grep `kb/` for `@`, `pat`, `eyJ`, `sk_`, phone-like numbers. Remove anything personal or
-   secret and note it in kb/findings.md.
+   secret and note it in kb/findings.md. Keep the owner's own contact in `kb/context.md` → "Owner contact".
 
 Write kb/runs/<YYYY-MM-DD>-kb-tidy.md with what changed; update kb/README.md status.

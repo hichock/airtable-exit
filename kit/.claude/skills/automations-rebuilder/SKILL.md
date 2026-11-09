@@ -13,7 +13,9 @@ For each row in kb/airtable/automations.md (only those that are on, unless the o
   scheduled → Vercel cron route; form submitted → server action; webhook received → webhook route.
 - Each step → code: create/update/find records → `store` calls; send email → provider API (key needed);
   Slack → incoming webhook URL (secret); run script → TypeScript port with a test (code from the owner).
-- Write the target in the `Rebuild:` column with status `todo`. Ask the owner for any missing key or script once.
+- Write the target in the `Rebuild:` column with status `todo`. Collect every missing key or script code into one
+  list and ask once (keys go to `.env.local` or the environment settings, never the chat). Build the rest meanwhile;
+  a script with no code stays `todo` with the plan's default.
 
 ## 2. Build one at a time
 Use the stale-deals example as the shape: `lib/automations/<name>.ts` with a pure `decide…()` and a `run…()`
@@ -33,8 +35,9 @@ same flag (or a `settings` row). Airtable's automations keep running until the o
 ## 4. Test
 - Unit tests for `decide…()`. Then a dry run: call the route locally with the flag on against demo or staging data:
   `curl -H "Authorization: Bearer $CRON_SECRET" localhost:3000/api/cron/<name>`.
-- Compare the output with Airtable's run history screenshots for the same day (kept 6 months on Team, 1 year on
-  Business). Record matches and differences in kb/airtable/automations.md.
+- Compare the output with what Airtable did for the same inputs (records the automation changed, read-only; or
+  run-history screenshots if the owner offers them; history is kept 6 months on Team, 1 year on Business).
+  Record matches and differences in kb/airtable/automations.md.
 
 ## 5. Write down
 kb/automations.md: one row per automation: Airtable name → new name, trigger, schedule, flag, test status, owner

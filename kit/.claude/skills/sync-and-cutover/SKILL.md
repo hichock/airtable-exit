@@ -19,6 +19,8 @@ The owner started this skill. Each phase below needs a "go" from the owner befor
    `vercel env add SYNC_ENABLED production` (value `1`), check `CRON_SECRET` exists, then `vercel deploy --prod`.
    The cron in `vercel.json` calls `/api/cron/sync` nightly; it copies records modified since the last run
    (`IS_AFTER(LAST_MODIFIED_TIME(), …)`, the filter is assumed to work; check the first run's counts).
+   The sync only adds and updates. Records deleted in Airtable stay in Supabase until Phase 2, where parity lists
+   them ("extra in Supabase") and the owner decides to delete or keep each group.
 4. Tell the team in plain words: "Airtable stays the master this week. Try the new app; edits you make there
    can be overwritten by the nightly copy." Write this rule to kb/decisions.md.
 5. Each morning: System page → Sync with Airtable is green; note counts in kb/cutover.md. Collect feedback.
@@ -28,6 +30,8 @@ Alternative for a no-code peek: the Supabase Airtable FDW (read-only) can mirror
 1. Owner, in Airtable: make editors read-only (or announce "stop editing"). You cannot do this for them.
 2. Final copy: `npm run migrate:copy -- --final --since <last sync time from sync_state>` (delta, idempotent),
    then `npm run migrate:parity -- --sample 50`. Every table must match. Fix and repeat if not.
+   Rows deleted in Airtable during the parallel run show as `extra` in the parity report. Show the owner the
+   counts per table; delete them in Supabase only with their OK (by `airtable_id`, one SQL statement per table).
 3. Run the full checklist in references/cutover-checklist.md. Record each result in kb/cutover.md.
 
 ## Phase 3: flip

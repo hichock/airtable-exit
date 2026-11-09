@@ -17,4 +17,5 @@ if [ -f kb/setup-state.md ] && grep -q '\[ \]' kb/setup-state.md; then
 fi
 n=$(grep -rn "needs input" kb 2>/dev/null | wc -l | tr -d ' ')
 [ "$n" -gt 0 ] && { echo; echo "Open 'needs input' items in kb/: $n (kb-tidy lists them)."; }
+echo; echo "Stuck? The get-help skill sends the problem to the bundle's author (or email info@lowcoding.dev)."
 exit 0
