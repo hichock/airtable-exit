@@ -1,11 +1,14 @@
 // Parity check before cutover. Usage: npm run migrate:parity -- [--sample 20]
-// Per table: Airtable record count vs Supabase row count, link counts, attachment count,
-// and a field-by-field diff of N random records (dates to UTC, empty → null, arrays sorted).
+// Per table: Airtable record count vs Supabase row count, Airtable ids missing in Supabase, Supabase rows whose
+// Airtable record was deleted ("extra"; the nightly sync never deletes), and a field-by-field diff of N random
+// records (dates to UTC, empty → null, arrays sorted).
+// Not checked here: link counts, rebuilt formulas and rollups, attachments. Those are SQL checks by hand
+// (data-migrator skill, step 3).
 // Writes .migrate/parity-report.json and logs a sync_runs row (kind "parity"). Exit code 1 on any mismatch.
 import { writeFileSync } from "node:fs";
 import { AirtableClient, type AirtableRecord } from "../../lib/airtable/client.ts";
 import { diffValues, sample, transformRecord } from "../../lib/airtable/transform.ts";
-import { peopleMap } from "../../lib/airtable/sync.ts";
+import { idDiff, idMap, peopleMap } from "../../lib/airtable/sync.ts";
 import { rowFromDb } from "../../lib/data/db-map.ts";
 import { setup } from "./env.ts";
 
@@ -21,6 +24,7 @@ for (const t of schema.tables.filter((x) => x.airtable)) {
   for await (const page of at.records(baseId, t.airtable!.id)) records.push(...page);
   const { count, error } = await db.from(t.key).select("id", { count: "exact", head: true });
   if (error) throw new Error(`Could not count ${t.key}: ${error.message}`);
+  const ids = idDiff(records.map((r) => r.id), (await idMap(db, t.key)).keys());
   const diffs: { airtableId: string; fields: string[] }[] = [];
   for (const rec of sample(records, n)) {
     const { data, error: e2 } = await db.from(t.key).select("*").eq("airtable_id", rec.id).maybeSingle();
@@ -29,13 +33,13 @@ for (const t of schema.tables.filter((x) => x.airtable)) {
     const fields = diffValues(transformRecord(t, rec, { people }).values, rowFromDb(t, data));
     if (fields.length) diffs.push({ airtableId: rec.id, fields });
   }
-  const ok = count === records.length && diffs.length === 0;
+  const ok = count === records.length && diffs.length === 0 && ids.missing.length === 0 && ids.extra.length === 0;
   if (!ok) bad++;
-  report.push({ table: t.key, airtable: records.length, supabase: count, sampled: Math.min(n, records.length), mismatched: diffs.length, diffs, ok });
+  report.push({ table: t.key, airtable: records.length, supabase: count, missing: ids.missing.length, extra: ids.extra.length, missingIds: ids.missing.slice(0, 200), extraIds: ids.extra.slice(0, 200), sampled: Math.min(n, records.length), mismatched: diffs.length, diffs, ok });
 }
 
 await db.from("sync_runs").insert({ kind: "parity", status: bad ? "error" : "ok", finished_at: new Date().toISOString(), detail: { tables: report.length, mismatched: bad } });
 writeFileSync(".migrate/parity-report.json", JSON.stringify(report, null, 2));
-console.table(report.map((r) => ({ table: r.table, airtable: r.airtable, supabase: r.supabase, sampled: r.sampled, mismatched: r.mismatched, ok: r.ok })));
+console.table(report.map((r) => ({ table: r.table, airtable: r.airtable, supabase: r.supabase, missing: r.missing, extra: r.extra, sampled: r.sampled, mismatched: r.mismatched, ok: r.ok })));
 console.log(bad ? `${bad} table(s) differ. See .migrate/parity-report.json.` : "All tables match.");
 process.exit(bad ? 1 : 0);

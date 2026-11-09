@@ -36,8 +36,8 @@ mkdirSync(".migrate", { recursive: true });
 writeFileSync("kb/airtable/inventory.json", JSON.stringify({ generatedAt: new Date().toISOString(), source: "Airtable REST API (read-only token)", userId: who.id, basesVisible: bases.length, bases: out }, null, 2) + "\n");
 writeFileSync(".migrate/people.json", JSON.stringify(people, null, 2) + "\n");
 for (const b of out) {
-  const tables = b.tables as { name: string; recordCount: number; fields: unknown[]; usage: { attachments: { bytes: number }; modifiedLast90d: number | null } }[];
-  console.table(tables.map((t) => ({ table: t.name, records: t.recordCount, fields: t.fields.length, attachmentMB: Math.round(t.usage.attachments.bytes / 1e5) / 10, modified90d: t.usage.modifiedLast90d ?? "n/a" })));
+  const tables = b.tables as { name: string; recordCount: number; fields: unknown[]; usage: { attachments: { bytes: number; largestBytes: number; overLimit: number }; modifiedLast90d: number | null } }[];
+  console.table(tables.map((t) => ({ table: t.name, records: t.recordCount, fields: t.fields.length, attachmentMB: Math.round(t.usage.attachments.bytes / 1e5) / 10, largestMB: Math.round(t.usage.attachments.largestBytes / 1e5) / 10, over50MB: t.usage.attachments.overLimit, modified90d: t.usage.modifiedLast90d ?? "n/a" })));
   for (const n of b.notes as string[]) console.warn(`note: ${n}`);
 }
 console.log("wrote kb/airtable/inventory.json and .migrate/people.json");

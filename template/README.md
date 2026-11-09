@@ -23,8 +23,8 @@ Without Supabase settings the app shows demo data and says so in a banner. It ne
 | `npm run schema:check` | Validates `app.schema.json` |
 | `npm run schema:sql -- <name>` | Writes the next `supabase/migrations/<n>_<name>.sql` from `app.schema.json` |
 | `npm run schema:from-airtable -- kb/airtable/inventory.json` | Draft `app.schema.json` + `kb/schema.md` from the Airtable inventory |
-| `npm run migrate:copy` | Copies Airtable → Supabase (snapshot, typed upsert, attachments, links). Safe to re-run |
-| `npm run migrate:parity` | Row counts per table + random record diffs. Exit 1 on any mismatch |
+| `npm run migrate:copy` | Copies Airtable → Supabase (snapshot, typed upsert, attachments, links). Files over `MAX_FILE_MB` (50) are listed, not copied. Safe to re-run |
+| `npm run migrate:parity` | Row counts, missing and deleted (extra) ids per table, random record diffs. Exit 1 on any mismatch |
 | `npm run report:html` | Renders `kb/report.md` → `docs/report.html` |
 | `bash scripts/test-migrations-local.sh` | Applies all migrations to a throwaway local Postgres and runs RLS checks as each role |
 

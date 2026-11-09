@@ -27,10 +27,10 @@ const JOBS: Record<string, Job> = {
     if (error) throw new Error(`Could not load sync state: ${error.message}`);
     const startedAt = new Date().toISOString();
     const since = data?.last_synced_at ?? new Date(Date.now() - 2 * 86_400_000).toISOString();
-    const results = await syncAll(db, loadSchema(), token, base, { kind: "delta", since });
+    const results = await syncAll(db, loadSchema(), token, base, { kind: "delta", since, maxFileBytes: (Number(process.env.MAX_FILE_MB) || 50) * 1_000_000 });
     const up = await db.from("sync_state").upsert(results.map((r) => ({ table_key: r.table, last_synced_at: startedAt })));
     if (up.error) throw new Error(`Could not save sync state: ${up.error.message}`);
-    return { items: results.reduce((a, r) => a + r.written, 0), detail: { since, tables: results.map((r) => ({ table: r.table, read: r.read, written: r.written, warnings: r.warnings.length })) } };
+    return { items: results.reduce((a, r) => a + r.written, 0), detail: { since, tables: results.map((r) => ({ table: r.table, read: r.read, written: r.written, skippedFiles: r.skippedFiles.length, warnings: r.warnings.length })) } };
   },
 };
 

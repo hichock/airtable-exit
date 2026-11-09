@@ -6,7 +6,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { columnOf, junctionOf } from "../schema/naming.ts";
 import type { AppSchema, TableDef } from "../schema/types.ts";
-import { AirtableClient, download, realDeps, type AirtableRecord, type Deps } from "./client.ts";
+import { AirtableClient, download, realDeps, type AirtableAttachment, type AirtableRecord, type Deps } from "./client.ts";
 import { attachmentPath, transformRecord, type TransformCtx } from "./transform.ts";
 
 export interface SyncOptions {
@@ -14,6 +14,8 @@ export interface SyncOptions {
   /** ISO time; delta/final copy only records modified after it. */
   since?: string;
   comments?: boolean;
+  /** Files bigger than this are not uploaded, only listed in skippedFiles (Supabase Free: 50 MB per file). */
+  maxFileBytes?: number;
   log?: (msg: string) => void;
   /** Called with each raw page, e.g. to write a JSON snapshot (the snapshot is also the backup). */
   onPage?: (table: TableDef, records: AirtableRecord[]) => void | Promise<void>;
@@ -25,8 +27,12 @@ export interface TableResult {
   written: number;
   attachments: number;
   comments: number;
+  /** Files over maxFileBytes: kept out of Storage so the owner can link them from existing storage or upgrade. */
+  skippedFiles: SkippedFile[];
   warnings: string[];
 }
+
+export interface SkippedFile { record: string; field: string; filename: string; size: number }
 
 type PendingLinks = Map<string, { recordAt: string; field: string; targets: string[] }[]>;
 
@@ -34,6 +40,18 @@ const BATCH = 500;
 
 function check(what: string, error: { message: string } | null): void {
   if (error) throw new Error(`${what}: ${error.message}`);
+}
+
+/** Pure: files the storage plan accepts vs files over the per-file limit (unknown size counts as small). */
+export function splitBySize(items: AirtableAttachment[], maxBytes: number | undefined): { keep: AirtableAttachment[]; tooBig: AirtableAttachment[] } {
+  if (!maxBytes) return { keep: items, tooBig: [] };
+  return { keep: items.filter((a) => (a.size ?? 0) <= maxBytes), tooBig: items.filter((a) => (a.size ?? 0) > maxBytes) };
+}
+
+/** Pure: Airtable ids not yet in Supabase (missing) and Supabase rows whose Airtable record is gone (extra). */
+export function idDiff(airtableIds: Iterable<string>, supabaseIds: Iterable<string>): { missing: string[]; extra: string[] } {
+  const at = new Set(airtableIds), sb = new Set(supabaseIds);
+  return { missing: [...at].filter((id) => !sb.has(id)), extra: [...sb].filter((id) => !at.has(id)) };
 }
 
 export function deltaFormula(since: string): string {
@@ -73,10 +91,12 @@ export async function idMap(db: SupabaseClient, table: string): Promise<Map<stri
   }
 }
 
-async function copyAttachments(db: SupabaseClient, deps: Deps, t: TableDef, rec: AirtableRecord, recordId: string, items: ReturnType<typeof transformRecord>["attachments"]): Promise<number> {
+async function copyAttachments(db: SupabaseClient, deps: Deps, t: TableDef, rec: AirtableRecord, recordId: string, items: ReturnType<typeof transformRecord>["attachments"], res: TableResult, maxBytes: number | undefined): Promise<number> {
   let n = 0;
   for (const { field, items: list } of items) {
-    for (const a of list) {
+    const { keep, tooBig } = splitBySize(list, maxBytes);
+    for (const a of tooBig) res.skippedFiles.push({ record: rec.id, field, filename: a.filename, size: a.size ?? 0 });
+    for (const a of keep) {
       const path = attachmentPath(t.key, rec.id, a);
       const body = await download(deps, a);
       const up = await db.storage.from("attachments").upload(path, body, { upsert: true, contentType: a.type ?? "application/octet-stream" });
@@ -98,7 +118,7 @@ async function copyComments(db: SupabaseClient, at: AirtableClient, baseId: stri
 }
 
 async function copyTable(db: SupabaseClient, at: AirtableClient, deps: Deps, baseId: string, t: TableDef, people: TransformCtx["people"], pending: PendingLinks, opts: SyncOptions): Promise<TableResult> {
-  const res: TableResult = { table: t.key, read: 0, written: 0, attachments: 0, comments: 0, warnings: [] };
+  const res: TableResult = { table: t.key, read: 0, written: 0, attachments: 0, comments: 0, skippedFiles: [], warnings: [] };
   if (!t.airtable) return { ...res, warnings: ["no airtable.id in app.schema.json; skipped"] };
   const unmatched = new Set<string>();
   const filter = opts.since ? deltaFormula(opts.since) : undefined;
@@ -119,11 +139,12 @@ async function copyTable(db: SupabaseClient, at: AirtableClient, deps: Deps, bas
       for (const l of out.links) links.push({ recordAt: rec.id, field: l.field, targets: l.airtableIds });
       const id = ids.get(rec.id);
       if (!id) continue;
-      res.attachments += await copyAttachments(db, deps, t, rec, id, out.attachments);
+      res.attachments += await copyAttachments(db, deps, t, rec, id, out.attachments, res, opts.maxFileBytes);
       if (opts.comments) res.comments += await copyComments(db, at, baseId, t, rec, id, people);
     }
     opts.log?.(`${t.key}: ${res.read} read`);
   }
+  if (res.skippedFiles.length) res.warnings.push(`${res.skippedFiles.length} file(s) over the per-file limit were not copied; see skippedFiles`);
   if (unmatched.size) res.warnings.push(`${unmatched.size} people not found in profiles (invite them, then re-run): ${[...unmatched].slice(0, 5).join(", ")}`);
   return res;
 }
@@ -169,7 +190,7 @@ export async function syncAll(db: SupabaseClient, schema: AppSchema, token: stri
     try {
       const r = await copyTable(db, at, deps, baseId, t, people, pending, opts);
       results.push(r);
-      await db.from("sync_runs").update({ status: "ok", finished_at: new Date().toISOString(), rows_read: r.read, rows_written: r.written, detail: { attachments: r.attachments, comments: r.comments, warnings: r.warnings.slice(0, 50) } }).eq("id", runId);
+      await db.from("sync_runs").update({ status: "ok", finished_at: new Date().toISOString(), rows_read: r.read, rows_written: r.written, detail: { attachments: r.attachments, skippedFiles: r.skippedFiles.length, comments: r.comments, warnings: r.warnings.slice(0, 50) } }).eq("id", runId);
     } catch (e) {
       await db.from("sync_runs").update({ status: "error", finished_at: new Date().toISOString(), error: e instanceof Error ? e.message : String(e) }).eq("id", runId);
       throw e;

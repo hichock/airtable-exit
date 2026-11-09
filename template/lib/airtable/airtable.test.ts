@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { AirtableClient, RateLimiter, type Deps } from "./client.ts";
 import { attachmentPath, diffValues, normalize, sample, transformRecord } from "./transform.ts";
-import { deltaFormula, importColumns } from "./sync.ts";
+import { deltaFormula, idDiff, importColumns, splitBySize } from "./sync.ts";
 import type { TableDef } from "../schema/types.ts";
 
 const deals: TableDef = {
@@ -61,6 +61,18 @@ test("attachment paths start with the table key (RLS reads the first segment)", 
   assert.equal(attachmentPath("deals", "rec1", { id: "att1", url: "", filename: "Q3 plan (final).pdf" }), "deals/rec1/att1-Q3_plan_final_.pdf");
 });
 
+test("files over the per-file limit are split off; unknown size counts as small", () => {
+  const items = [{ id: "a", url: "u", filename: "small.pdf", size: 10 }, { id: "b", url: "u", filename: "big.mov", size: 60_000_000 }, { id: "c", url: "u", filename: "nosize.txt" }];
+  const r = splitBySize(items, 50_000_000);
+  assert.deepEqual(r.keep.map((a) => a.filename), ["small.pdf", "nosize.txt"]);
+  assert.deepEqual(r.tooBig.map((a) => a.filename), ["big.mov"]);
+  assert.equal(splitBySize(items, undefined).tooBig.length, 0);
+});
+
+test("id diff: missing in Supabase and extra rows deleted in Airtable", () => {
+  assert.deepEqual(idDiff(["rec1", "rec2", "rec3"], ["rec2", "rec3", "rec9"]), { missing: ["rec1"], extra: ["rec9"] });
+});
+
 test("delta formula strips quotes", () => {
   assert.equal(deltaFormula("2026-11-01T00:00:00Z'"), "IS_AFTER(LAST_MODIFIED_TIME(), '2026-11-01T00:00:00Z')");
 });
@@ -114,14 +126,14 @@ test("usage summary: fill rate, months, duplicates, attachment bytes, people", (
   const u = summarizeRecords(
     { primaryFieldId: "fldN", fields: [{ id: "fldN", type: "singleLineText" }, { id: "fldF", type: "multipleAttachments" }, { id: "fldB", type: "createdBy" }, { id: "fldE", type: "email" }] },
     [
-      { id: "r1", createdTime: "2026-01-05T00:00:00Z", fields: { fldN: "Acme", fldF: [{ size: 1000 }, { size: 500 }], fldB: { id: "usr1" } }, commentCount: 2 },
+      { id: "r1", createdTime: "2026-01-05T00:00:00Z", fields: { fldN: "Acme", fldF: [{ size: 1000 }, { size: 60_000_000 }], fldB: { id: "usr1" } }, commentCount: 2 },
       { id: "r2", createdTime: "2026-02-01T00:00:00Z", fields: { fldN: "acme ", fldB: { id: "usr1" } } },
       { id: "r3", createdTime: "2026-02-03T00:00:00Z", fields: { fldN: "Other", fldE: "" } },
     ],
   );
   assert.deepEqual(u.createdByMonth, { "2026-01": 1, "2026-02": 2 });
   assert.equal(u.duplicatePrimary, 2);
-  assert.deepEqual(u.attachments, { files: 2, bytes: 1500 });
+  assert.deepEqual(u.attachments, { files: 2, bytes: 60_001_000, largestBytes: 60_000_000, overLimit: 1 });
   assert.equal(u.fields.fldE?.fillRate, 0);
   assert.equal(u.fields.fldN?.fillRate, 1);
   assert.equal(u.fields.fldF?.fillRate, 0.333);

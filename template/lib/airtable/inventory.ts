@@ -7,6 +7,9 @@ import type { AirtableClient, AirtableRecord } from "./client.ts";
 
 export interface FieldUsage { filled: number; fillRate: number }
 
+/** Supabase Free caps each uploaded file at 50 MB (supabase.com/pricing, read 2026-11-09). Decimal MB: flags a few more files, never fewer. */
+export const FREE_FILE_LIMIT_BYTES = 50_000_000;
+
 export interface TableUsage {
   records: number;
   createdByMonth: Record<string, number>;
@@ -14,7 +17,8 @@ export interface TableUsage {
   lastCreated: string | null;
   modifiedLast90d: number | null;
   duplicatePrimary: number;
-  attachments: { files: number; bytes: number };
+  /** largestBytes: biggest single file; overLimit: files above FREE_FILE_LIMIT_BYTES. */
+  attachments: { files: number; bytes: number; largestBytes: number; overLimit: number };
   commentRecords: number;
   fields: Record<string, FieldUsage>;
   /** createdBy / lastModifiedBy / collaborator cells: user id → count. Goes to .migrate, not kb. */
@@ -25,7 +29,7 @@ type AnyObj = Record<string, unknown>;
 
 /** Pure: usage stats for one table from its records. */
 export function summarizeRecords(table: { primaryFieldId: string; fields: { id: string; type?: string }[] }, records: AirtableRecord[]): TableUsage {
-  const u: TableUsage = { records: records.length, createdByMonth: {}, firstCreated: null, lastCreated: null, modifiedLast90d: null, duplicatePrimary: 0, attachments: { files: 0, bytes: 0 }, commentRecords: 0, fields: {}, people: {} };
+  const u: TableUsage = { records: records.length, createdByMonth: {}, firstCreated: null, lastCreated: null, modifiedLast90d: null, duplicatePrimary: 0, attachments: { files: 0, bytes: 0, largestBytes: 0, overLimit: 0 }, commentRecords: 0, fields: {}, people: {} };
   const seen = new Map<string, number>();
   const filled: Record<string, number> = Object.fromEntries(table.fields.map((f) => [f.id, 0]));
   const peopleTypes = new Set(["createdBy", "lastModifiedBy", "singleCollaborator", "multipleCollaborators"]);
@@ -40,8 +44,13 @@ export function summarizeRecords(table: { primaryFieldId: string; fields: { id: 
       if (v === undefined || v === null || v === "" || (Array.isArray(v) && v.length === 0)) continue;
       filled[f.id] = (filled[f.id] ?? 0) + 1;
       if (f.type === "multipleAttachments" && Array.isArray(v)) {
-        u.attachments.files += v.length;
-        u.attachments.bytes += v.reduce((a: number, x) => a + Number((x as AnyObj).size ?? 0), 0);
+        for (const x of v) {
+          const size = Number((x as AnyObj).size ?? 0);
+          u.attachments.files++;
+          u.attachments.bytes += size;
+          u.attachments.largestBytes = Math.max(u.attachments.largestBytes, size);
+          if (size > FREE_FILE_LIMIT_BYTES) u.attachments.overLimit++;
+        }
       }
       if (peopleTypes.has(f.type ?? "")) {
         for (const p of Array.isArray(v) ? v : [v]) {
