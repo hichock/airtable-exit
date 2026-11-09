@@ -11,6 +11,10 @@
       "Bash(npm run:*)", "Bash(npm test:*)", "Bash(npx tsc:*)",
       "Bash(supabase migration list:*)", "Bash(vercel ls:*)", "Bash(gh repo view:*)"
     ],
-    "deny": ["Read(./.env.local)", "Read(./.env)"]
+    "deny": [
+      "Read(./.env.local)", "Read(./.env)",
+      "mcp__*irtable*__create_*", "mcp__*irtable*__update_*", "mcp__*irtable*__delete_*",
+      "mcp__*irtable*__submit_form", "mcp__*irtable*__revert_action", "mcp__*irtable*__test_automation_webhook_trigger"
+    ]
   }
 }
