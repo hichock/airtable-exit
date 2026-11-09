@@ -1,15 +1,31 @@
-# Owner interview during setup
+# What setup may ask, and nothing more
 
-The question list lives in the project kit, so it also works without the plugin:
+The owner is often not technical. Moving off Airtable should feel easy, not like an exam. So setup reads, guesses
+and decides by itself, and puts every open point into one plan with a best guess.
+
+## Allowed questions (one at a time, only when nothing else can answer)
+| When | Question | Only if |
+|---|---|---|
+| Step 2, cloud or local repo with files | "May I set up the project in `crm/` here, or would you like a new repo?" | The repo is not empty |
+| Step 3 | "I'll move <base>. Also <other base>?" | More than one base has recent activity and kb/context.md doesn't say |
+| Step 5 | "Approve this plan, or tell me what to change?" | Always (the gate) |
+| Later skills | "Invite these people now?" · "Copy now?" · "Go" per cutover phase | Steps that change data or send emails |
+
+## Clicks only the owner can do (not questions: say what and why, link the guide, wait, re-check)
+- Create the read-only Airtable token: [guides/airtable-token.md](guides/airtable-token.md)
+- Log in to GitHub, Supabase or Vercel when no connector covers it: [github](guides/github.md),
+  [supabase](guides/supabase.md), [vercel](guides/vercel.md)
+- Copy the Supabase secret key into `.env.local` or the environment settings: [guides/supabase.md](guides/supabase.md)
+- Cloud only: allow a blocked host, add a secret, attach a new repo: [guides/claude-cloud-session.md](guides/claude-cloud-session.md)
+
+## Not asked (goes into the plan as "best guess, better with…")
+View filters, interface layouts, script code, other tools that touch the base, outside users, important reports,
+pains, cutover date, the Airtable plan name. The table of gaps and defaults is in the kit:
 `kit/.claude/skills/process-map/references/questions.md` (in the project: `.claude/skills/process-map/references/questions.md`).
-Setup step 6 runs `/process-map`, which asks them. These are the rules for how setup handles the interview.
 
-- **When:** after discover and usage-analysis, so every question comes with a draft answer from the data.
-- **How many:** at most 8. Skip any already answered in `kb/context.md`.
-- **How:** one question at a time. Show the draft ("From your base I see 3 interfaces used by 2 outside users…"),
-  then ask "what's wrong or missing?". Accept "skip"; mark the item `needs input`.
-- **Files:** screenshots and script code go to `.migrate/screenshots/` and `.migrate/scripts/` (gitignored).
-  The agent describes them in words in `kb/airtable/interfaces.md` and `kb/airtable/automations.md`.
-- **Where answers go:** `kb/context.md`, labelled `stated` with the date. New rules go to `kb/decisions.md`.
-- **Time:** aim for 5 minutes. If the owner is busy, finish the report with the gaps listed in "Owner to-do" and
-  continue; the plan approval gate still applies.
+## How
+- Before any question, check `kb/context.md` and `kb/decisions.md`: never ask twice.
+- Say what you will do by default, so "yes" is enough: "I'll put it in `crm/`. OK?"
+- Files the owner sends (screenshots, script code) go to `.migrate/screenshots/` and `.migrate/scripts/`
+  (gitignored), at any time. They improve the build; they never block it.
+- Answers go to `kb/context.md` labelled `stated` with the date; rules go to `kb/decisions.md`.
