@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/lowcoding-dev/airtable-exit/template/schema/app.schema.v1.json",
+  "$id": "https://github.com/hichock/airtable-exit/template/schema/app.schema.v1.json",
   "title": "airtable-exit app.schema.json (v1)",
   "description": "Describes the app the template renders. Structure only: cross-references (link targets, view columns, formula fields) are checked by lib/schema/validate.ts (npm run schema:check).",
   "type": "object",
