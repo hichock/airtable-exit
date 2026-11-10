@@ -8,15 +8,7 @@ One install, one command, almost no questions. Free and open source (MIT), by [l
 
 ## How it works
 
-```mermaid
-flowchart LR
-  A[Detect<br/>local or cloud, connectors,<br/>logins, repo] --> B[Connect<br/>one read-only<br/>Airtable token]
-  B --> C[Read<br/>schema, automations,<br/>interfaces, usage]
-  C --> D[One plan<br/>found, moves, gaps with<br/>best guesses, cost $0]
-  D --> E[Build<br/>GitHub, Supabase Free,<br/>Vercel Hobby]
-  E --> F[Migrate<br/>invite, copy data,<br/>automations]
-  F --> G[Cutover<br/>parallel run, freeze,<br/>final sync, checks]
-```
+![How airtable-exit works: your Airtable base is read with a read-only token, Claude shows one plan you approve, then builds your own CRM on GitHub, Supabase and Vercel in 7 steps: detect, connect, read, plan, build, migrate, cutover](docs/how-it-works.png)
 
 You answer very little. Claude reads what it can, does what is clear, and shows you **one plan**: what it found, what
 moves as is, what is missing or unclear (with its best guess and what it will do), and what the new app can do
@@ -33,7 +25,6 @@ Every step writes to a knowledge base in your repo (`kb/`). The next step reads 
 /plugin install airtable-exit@lowcoding-airtable
 ```
 Then, in an empty folder: `/airtable-exit:setup`. It is resumable: run it again and it continues where it stopped.
-While the repo is private, run `gh auth login` first so Claude Code can read it.
 
 **Claude Code in the cloud (claude.ai/code):** start a session on an empty private repo and type
 `Set up airtable-exit from github.com/hichock/airtable-exit`. A cloud session cannot create repos, so the repo you
