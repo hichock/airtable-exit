@@ -5,8 +5,9 @@
 // Safe to re-run: it updates rows instead of duplicating them. Writes .migrate/copy-report.json.
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { syncAll } from "../../lib/airtable/sync.ts";
-import { setup } from "./env.ts";
+import { helpAndExit, setup } from "./env.ts";
 
+helpAndExit("Usage: npm run migrate:copy -- [--comments] [--since 2026-11-01T00:00:00Z] [--final]\nCopies Airtable into Supabase (needs AIRTABLE_PAT, AIRTABLE_BASE_ID, NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY).\nSafe to re-run. Writes .migrate/snapshot/ and .migrate/copy-report.json.");
 const { db, schema, token, baseId } = setup();
 const since = process.argv.includes("--since") ? process.argv[process.argv.indexOf("--since") + 1] : undefined;
 const kind = process.argv.includes("--final") ? "final" : since ? "delta" : "copy";

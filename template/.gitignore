@@ -1,9 +1,10 @@
 node_modules/
 .next/
 out/
-.env
-.env.local
-.env*.local
+# Secrets: every env file stays local, except the example with empty values.
+.env*
+!.env.example
+# People lists, snapshots and reports from the copy (personal data).
 .migrate/
 *.tsbuildinfo
 next-env.d.ts

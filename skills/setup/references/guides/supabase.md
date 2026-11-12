@@ -39,12 +39,35 @@ need it.
    - **In a cloud session:** add them as described in [claude-cloud-session.md](claude-cloud-session.md) → "Add a key".
 
 ## 5. Sign-in links (after the app is on Vercel)
+Claude does this itself when it has a Supabase access token (`npm run auth:check -- --fix`). Otherwise:
 1. Go to **Authentication → URL Configuration**.
-2. **Site URL:** your app's address from Vercel (e.g. `https://acme-crm.vercel.app`).
+2. **Site URL:** your app's address from Vercel (e.g. `https://acme-crm.vercel.app`). It starts as
+   `http://localhost:3000`; if you leave it, email links open a page on the reader's own computer and fail.
 3. **Redirect URLs:** click **Add URL** and add `https://acme-crm.vercel.app/auth/callback`. Save.
 Sign-ups by strangers stay off: only people you invite can sign in.
 
-## 6. Only if you upgrade to Pro later
+## 6. Email: needed before you invite anyone else (about 15 minutes)
+Supabase's built-in email only delivers to people who are members of your Supabase organization, and at most 2
+emails an hour. Everyone else gets "Email address not authorized" and never sees the invite (Supabase docs, "Custom
+SMTP", read 2026-11-12). So before you invite your team or a client, connect an email service. Resend is the
+default here: its free plan sends 3,000 emails a month, 100 a day (resend.com/pricing, 2026-11-12).
+You need a domain where you can add DNS records (for example `yourcompany.com`, or a subdomain like `crm.yourcompany.com`).
+1. Sign up at https://resend.com.
+2. **Domains → Add domain**: type your domain, then add the DNS records it shows at your domain host (where you
+   bought the domain). Wait until Resend says **Verified** (minutes to a few hours).
+3. **API Keys → Create API key**: name `supabase`, permission **Sending access**. Copy it (it is shown once).
+4. In Supabase: **Authentication → Emails → SMTP Settings** → turn on **Enable custom SMTP** and fill in:
+   - Sender email: `no-reply@<your verified domain>` · Sender name: your company or app name
+   - Host: `smtp.resend.com` · Port: `465` · Username: `resend` · Password: the API key from step 3
+   Click **Save**. (Values from Resend's guide "Send emails using Supabase with SMTP", read 2026-11-12.)
+5. Supabase now allows 30 emails an hour. Inviting more people at once? **Authentication → Rate Limits** → raise
+   "emails sent per hour".
+6. Tell Claude "done": it runs `npm run auth:check`, which should say `ok` for SMTP, and you can invite people.
+Paste the API key only into Supabase, never into the chat. Any other SMTP service works the same way (Supabase lists
+AWS SES, Postmark, SendGrid, ZeptoMail and Brevo).
+
+## 7. Only if you upgrade to Pro later
 To copy files bigger than 50 MB: **Storage → Settings**, raise the global file size limit, and tell Claude the new
 number (it sets `MAX_FILE_MB`).
-**Sources:** supabase.com/pricing, Supabase docs on API keys and storage file limits, read 2026-11-09.
+**Sources:** supabase.com/pricing, Supabase docs on API keys and storage file limits, read 2026-11-09; Supabase docs
+"Custom SMTP" and "Redirect URLs", resend.com/pricing and Resend's Supabase SMTP guide, read 2026-11-12.

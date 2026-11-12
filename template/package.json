@@ -2,6 +2,7 @@
   "name": "airtable-exit-app",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Your own CRM after Airtable: Next.js + Supabase, driven by app.schema.json.",
   "license": "MIT",
   "engines": {
@@ -22,7 +23,8 @@
     "report:html": "tsx scripts/report/render.ts",
     "invite": "tsx scripts/invite.ts",
     "test:migrations": "bash scripts/test-migrations-local.sh",
-    "airtable:inventory": "tsx scripts/airtable/inventory.ts"
+    "airtable:inventory": "tsx scripts/airtable/inventory.ts",
+    "auth:check": "tsx scripts/auth-check.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

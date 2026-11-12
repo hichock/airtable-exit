@@ -28,6 +28,10 @@ If the owner prefers to wait, invite the admins only; re-running the copy after 
 Write changes to kb/context.md (`stated`) and the rules to kb/decisions.md.
 
 ## 3. Invite
+First `npm run auth:check`. Stop if it shows `FIX`: invites to anyone outside the owner's Supabase organization
+fail without custom SMTP ("Email address not authorized"), and a wrong Site URL or redirect URL sends people to
+localhost. The fixes are in the setup guide (bundle `skills/setup/references/guides/supabase.md` → "Sign-in links"
+and "Email"); `npm run auth:check -- --fix` sets the two URLs when a Supabase access token is available.
 For each person to invite (from `.migrate/people.json`):
 `npm run invite -- <email> <role> --airtable <usrId>`
 The `--airtable` id links their Airtable activity (createdBy, person fields) to their new profile for the copy.

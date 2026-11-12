@@ -34,7 +34,7 @@ Variables**. For each line: type the **Key** (name), paste the **Value**, keep a
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase publishable (or anon) key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase secret (or service_role) key. Mark it **Sensitive** if offered |
 | `CRON_SECRET` | A random value Claude generates for you (in `.env.local`) |
-| `NEXT_PUBLIC_SITE_URL` | Your app address, e.g. `https://acme-crm.vercel.app` (add after the first deploy) |
+| `NEXT_PUBLIC_SITE_URL` | Your app address, e.g. `https://acme-crm.vercel.app` (add after the first deploy, then redeploy). Never `localhost`: sign-in and invite emails link to this address |
 
 Tip: Vercel lets you paste several lines of `KEY=value` at once into the Key field.
 Do not add `DEMO`, `AIRTABLE_PAT` or `AIRTABLE_BASE_ID` now. Claude adds the Airtable ones only for the

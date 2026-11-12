@@ -10,8 +10,9 @@ import { AirtableClient, type AirtableRecord } from "../../lib/airtable/client.t
 import { diffValues, sample, transformRecord } from "../../lib/airtable/transform.ts";
 import { idDiff, idMap, peopleMap } from "../../lib/airtable/sync.ts";
 import { rowFromDb } from "../../lib/data/db-map.ts";
-import { setup } from "./env.ts";
+import { helpAndExit, setup } from "./env.ts";
 
+helpAndExit("Usage: npm run migrate:parity -- [--sample 20]\nCompares Airtable with Supabase per table (counts, missing and extra ids, a field diff of N random records).\nWrites .migrate/parity-report.json. Exit code 1 on any mismatch.");
 const { db, schema, token, baseId } = setup();
 const n = Number(process.argv[process.argv.indexOf("--sample") + 1]) || 20;
 const at = new AirtableClient(token);

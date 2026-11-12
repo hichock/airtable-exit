@@ -11,6 +11,8 @@ npm run demo          # http://localhost:3000 with sample data, no Supabase need
 ```
 
 With Supabase: copy `.env.example` to `.env.local`, fill in the keys, remove `DEMO=1`, then `npm run dev`.
+Before inviting anyone: `npm run auth:check` (Supabase's built-in email only reaches members of your Supabase
+organization; others need custom SMTP, for example Resend).
 Without Supabase settings the app shows demo data and says so in a banner. It never crashes for missing env.
 
 ## Commands
@@ -26,6 +28,9 @@ Without Supabase settings the app shows demo data and says so in a banner. It ne
 | `npm run migrate:copy` | Copies Airtable → Supabase (snapshot, typed upsert, attachments, links). Files over `MAX_FILE_MB` (50) are listed, not copied. Safe to re-run |
 | `npm run migrate:parity` | Row counts, missing and deleted (extra) ids per table, random record diffs. Exit 1 on any mismatch |
 | `npm run report:html` | Renders `kb/report.md` → `docs/report.html` |
+| `npm run auth:check -- [--fix]` | Checks what sign-in and invite emails need: live `NEXT_PUBLIC_SITE_URL`, Supabase Site URL and redirect URL, custom SMTP. `--fix` sets the two URLs (needs a Supabase access token) |
+| `npm run invite -- <email> <role>` | Sends a Supabase invite with a role. Refuses a localhost `NEXT_PUBLIC_SITE_URL` |
+| `bash scripts/check-staged.sh` | Refuses a commit with a staged `.env*` file or `.migrate/` (also the pre-commit hook scaffold installs) |
 | `bash scripts/test-migrations-local.sh` | Applies all migrations to a throwaway local Postgres and runs RLS checks as each role |
 
 ## Where things are

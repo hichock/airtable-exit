@@ -9,6 +9,7 @@ Status: in progress. Resume with /airtable-exit:setup (or follow skills/setup/SK
 - [ ] 6. Code on GitHub in a private repo
 - [ ] 7. Supabase project created (Free by default), migrations applied, keys in .env.local
 - [ ] 8. Vercel deployed (Hobby by default), env set, /api/health says supabase
+- [ ] 8b. Sign-in emails: Site URL and redirect URL set, custom SMTP on (or written down as open: then only the owner can be invited)
 - [ ] 9. Owner invited as admin and signed in
 - [ ] 10. Weekly health scheduled; nightly sync present but off
 - [ ] 11. Handed over: live URL and next steps shown

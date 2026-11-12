@@ -1,8 +1,10 @@
 # airtable-exit
 
 Move your company off Airtable onto its own CRM: Next.js on Vercel, Supabase (Postgres, Auth, Storage), code in your GitHub.
-Claude Code reads your base (tables, formulas, automations, interfaces, people, usage), shows you one plan to approve, then builds, deploys and migrates it on free plans.
-One install, one command, almost no questions. Free and open source (MIT), by [lowcoding.dev](https://lowcoding.dev).
+Claude Code reads your base (tables, formulas, automations, interfaces, people, usage), shows you one plan to approve, then builds, deploys and migrates it on free hosting plans.
+One install, one command, almost no questions. The bundle is free and open source (MIT), by [lowcoding.dev](https://lowcoding.dev).
+**You need a paid Claude plan** (Pro, Max, Team or Enterprise) **or Anthropic API credits to run it**: the free
+claude.ai plan does not include Claude Code.
 
 ![Grid view of the generated CRM](docs/screenshots/grid-1280.png)
 
@@ -43,9 +45,10 @@ pick is the project's home. If it already has files, setup asks once whether to 
    and interfaces through Airtable's MCP. The official Airtable plugin is optional.
 4. **Reads everything** by itself: schema, formulas, automations, interfaces, people, usage, dead fields, processes.
 5. **Shows one plan** (`kb/report.md` and `docs/report.html`) and waits for your yes.
-6. **Builds** in your accounts, on free plans: private GitHub repo, Supabase project with migrations, Vercel deploy.
+6. **Builds** in your accounts, on free hosting plans: private GitHub repo, Supabase project with migrations, Vercel deploy.
    It prefers connectors when they are on and falls back to command-line tools or a dashboard guide.
-7. **Invites you** as admin, schedules the weekly health check, and shows the live URL and the next steps.
+7. **Sets up sign-in emails** (live URL in Supabase, and an email service so invites reach people outside your
+   Supabase account; Resend's free plan by default), **invites you** as admin, schedules the weekly health check, and shows the live URL and the next steps.
 
 Step-by-step guides for every click you might need (Airtable token, Supabase keys, Vercel environment variables,
 GitHub, cloud sessions): [`skills/setup/references/guides/`](skills/setup/references/guides/).
@@ -68,17 +71,20 @@ The kit blocks the Airtable MCP's create, update and delete tools in `.claude/se
 
 ## What it costs to run
 
-Free by default. Supabase Free, Vercel Hobby and GitHub Free cost $0 and fit most small CRMs.
+Hosting is free by default: Supabase Free, Vercel Hobby, GitHub Free and Resend Free cost $0 and fit most small
+CRMs. Claude Code itself is not free: it runs on your paid Claude plan or API usage.
 
 | | Per month | Limits that matter | Source (2026-11-09) |
 |---|---|---|---|
 | Supabase Free | $0 | 500 MB database, 1 GB files, **50 MB per file**, pauses after 1 week idle | supabase.com/pricing |
 | Vercel Hobby | $0 | Daily crons (the app's are daily), 5-minute functions | vercel.com/docs/plans/hobby |
 | GitHub Free | $0 | Private repos included | github.com/pricing |
+| Resend Free (invite and sign-in emails) | $0 | 3,000 emails a month, 100 a day; needs a domain you can add DNS records to | resend.com/pricing (2026-11-12) |
+| Claude Code | your Claude plan | Pro, Max, Team or Enterprise subscription, or API usage; not in the free plan | code.claude.com/docs/en/setup (2026-11-12), prices at claude.com/pricing |
 | Airtable Team (today) | $20/seat annual, $24 monthly | | airtable.com/pricing (2026-11-08) |
 | Airtable Business (today) | $45/seat annual, $54 monthly | | airtable.com/pricing (2026-11-08) |
 
-Example: 8 editors on Airtable Business, monthly billing = 8 × $54 = $432/month. After: $0/month on the free tiers,
+Example: 8 editors on Airtable Business, monthly billing = 8 × $54 = $432/month. After: $0/month for hosting on the free tiers,
 before email sending. Your plan does this math with your own seat counts.
 
 **Files over 50 MB:** the copy skips them and lists them. Keep them where you already store big files (Google Drive,
@@ -90,10 +96,15 @@ non-commercial, personal use; the plan mentions it and you decide.
 
 ## Requirements
 
-- Claude Code (on your computer with plugin support, or in the cloud at claude.ai/code). A paid Claude plan only for
-  the weekly cloud health check.
+- **A paid Claude plan or API credits.** Claude Code needs a Pro, Max, Team or Enterprise plan, or an Anthropic
+  Console (API) account billed per use; the free claude.ai plan does not include it (sourced:
+  code.claude.com/docs/en/setup, read 2026-11-12). The weekly cloud health check runs on the same plan.
+- Claude Code itself: on your computer with plugin support, or in the cloud at claude.ai/code.
 - Free accounts at GitHub, Supabase and Vercel. Connectors for them in claude.ai make it easiest; otherwise setup
   uses their command-line tools (it installs them) or walks you through the dashboard.
+- For invites to your team: a free Resend account (or another email service) and a domain you can add DNS records
+  to. Supabase's built-in email only reaches members of your Supabase organization, 2 emails an hour (Supabase docs,
+  read 2026-11-12). Setup walks you through it ([guide](skills/setup/references/guides/supabase.md), "Email").
 - Owner or creator access to the Airtable base. On Enterprise Scale, an admin may need to allow the Airtable MCP or
   Claude Code's OAuth client.
 
@@ -183,7 +194,7 @@ A session-start hook prints the map, the latest decisions and any open setup ste
 
 **Do I need the Airtable plugin?** No. One read-only token covers the REST reads, the copy and, through Airtable's MCP command-line tool, the automations. The plugin is optional.
 
-**Is free really enough?** For most small CRMs, yes. The plan checks your real numbers against the free limits (files, storage, database size) and tells you which limit, if any, you would hit.
+**Is it really free?** The hosting is, for most small CRMs. Claude Code is not: it needs a paid Claude plan or API usage. The plan checks your real numbers against the free limits (files, storage, database size) and tells you which limit, if any, you would hit.
 
 **Who do I ask when something breaks?** Say "help" in Claude Code, or email info@lowcoding.dev.
 

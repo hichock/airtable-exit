@@ -2,6 +2,7 @@
 // Server actions: parse → load → decide → write → message. Access is checked here and again by RLS.
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { can, getSession, requireUser } from "@/lib/session";
 import { tableOrNull } from "@/lib/schema/load";
@@ -10,6 +11,7 @@ import { parseInput } from "@/lib/views/parse-input";
 import { collectValues, formFields, type FormState } from "@/lib/views/forms";
 import { getMode } from "@/lib/env";
 import { adminClient, userClient } from "@/lib/supabase/server";
+import { callbackUrl, emailErrorHint, siteUrl, siteUrlProblem } from "@/lib/auth/site";
 import { supabaseStore } from "@/lib/data/supabase-store";
 import { demoStore } from "@/lib/demo/store";
 
@@ -90,10 +92,10 @@ export async function signInAction(_prev: FormState, formData: FormData): Promis
   const mode = getMode();
   if (mode.kind === "demo") redirect("/");
   const client = await userClient(mode.url, mode.anonKey);
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const site = await linkSite();
   // shouldCreateUser: false → only people an admin invited can sign in.
-  const { error } = await client.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: `${site}/auth/callback` } });
-  if (error) return { ok: false, errors: {}, message: `Could not send the link: ${error.message}. If you are new, ask an admin to invite you.` };
+  const { error } = await client.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: callbackUrl(site) } });
+  if (error) return { ok: false, errors: {}, message: `Could not send the link: ${error.message}.${emailErrorHint(error.message) || " If you are new, ask an admin to invite you."}` };
   return { ok: true, errors: {}, message: `Check ${email} for a sign-in link.` };
 }
 
@@ -114,11 +116,21 @@ export async function inviteAction(_prev: FormState, formData: FormData): Promis
   if (mode.kind === "demo") return { ok: true, errors: {}, message: `Demo mode: ${email} would get an invite as ${role}.` };
   const admin = adminClient(mode.url);
   if (!admin) return { ok: false, errors: {}, message: "Set SUPABASE_SERVICE_ROLE_KEY to send invites." };
-  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
-  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo: `${site}/auth/callback` });
-  if (error || !data.user) return { ok: false, errors: {}, message: `Could not invite: ${error?.message ?? "no user returned"}` };
+  const site = await linkSite();
+  const problem = siteUrlProblem(site, mode.url);
+  if (problem) return { ok: false, errors: {}, message: `Not sent: ${problem}` };
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, { redirectTo: callbackUrl(site) });
+  if (error || !data.user) return { ok: false, errors: {}, message: `Could not invite: ${error?.message ?? "no user returned"}.${emailErrorHint(error?.message ?? "")}` };
   const up = await admin.from("profiles").upsert({ id: data.user.id, email, role });
   if (up.error) return { ok: false, errors: {}, message: `Invited, but the role was not saved: ${up.error.message}` };
   revalidatePath("/system");
   return { ok: true, errors: {}, message: `Invite sent to ${email} as ${role}.` };
+}
+
+/** The URL email links point to: NEXT_PUBLIC_SITE_URL, or this request's own origin if that variable still says localhost. */
+async function linkSite(): Promise<string> {
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  const origin = h.get("origin") ?? (host ? `${h.get("x-forwarded-proto") ?? "https"}://${host}` : null);
+  return siteUrl(process.env, origin) ?? "http://localhost:3000";
 }

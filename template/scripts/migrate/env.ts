@@ -4,6 +4,11 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { validateSchema } from "../../lib/schema/validate.ts";
 import type { AppSchema } from "../../lib/schema/types.ts";
 
+/** Prints the usage text and exits when the script is called with --help or -h (before any env or network access). */
+export function helpAndExit(usage: string): void {
+  if (process.argv.includes("--help") || process.argv.includes("-h")) { console.log(usage); process.exit(0); }
+}
+
 export function loadEnvFile(path = ".env.local"): void {
   if (!existsSync(path)) return;
   for (const line of readFileSync(path, "utf8").split("\n")) {

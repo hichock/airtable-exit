@@ -9,7 +9,7 @@ a sample Airtable base (about an hour, not measured yet). Write what you find to
 Checks the app, the bundle's files and the agent flow up to the plan, with a fake inventory.
 
 ```bash
-git clone https://github.com/hichock/airtable-exit && cd airtable-exit   # gh auth login first while it is private
+git clone https://github.com/hichock/airtable-exit && cd airtable-exit
 claude plugin validate .                                                 # plugin and marketplace files are valid
 cd template && npm ci && npm test && npx tsc --noEmit                    # unit tests and types
 npm run demo                                                             # open http://localhost:3000
@@ -19,7 +19,9 @@ the dashboard, the System page, and the same at phone width (390 px). Demo data 
 
 Then the kit and the agent flow, still without accounts:
 ```bash
-cd .. && bash scripts/scaffold.sh /tmp/aex-dry && cd /tmp/aex-dry && npm install && git init -q
+cd .. && mkdir -p /tmp/aex-dry && git -C /tmp/aex-dry init -q && bash scripts/scaffold.sh /tmp/aex-dry && cd /tmp/aex-dry && npm install
+cp .env.example .env.local && git add -A && git status --short | grep env   # only .env.example; .env.local must not show
+npm run airtable:inventory -- --help && npm run invite -- --help && npm run migrate:copy -- --help   # scripts start
 mkdir -p kb/airtable .migrate && cp scripts/schema-from-airtable/fixtures/inventory.sample.json kb/airtable/inventory.json
 npm run schema:from-airtable -- kb/airtable/inventory.json --out .migrate/app.schema.draft.json --notes .migrate/schema-notes.md
 ```
@@ -39,10 +41,11 @@ Open Claude Code in `/tmp/aex-dry` and check:
 | Need | How | Cost |
 |---|---|---|
 | Airtable account with a sample base | Sign up at airtable.com, open airtable.com/templates, pick a CRM-like template (e.g. a sales pipeline), click **Use template**. Add 2 or 3 records with a file attached, one automation, and one interface page, so every reader has something to find. | Free plan: 1,000 API calls per workspace per month. A small base uses a fraction of that; check the estimate discover prints. |
-| GitHub | Account, `gh auth login` (the bundle repo is private for now) | Free |
+| GitHub | Account, `gh auth login` | Free |
 | Supabase | Account (Continue with GitHub). Optional: Supabase connector in claude.ai → Settings → Connectors | Free (2 active projects) |
 | Vercel | Account on Hobby (Continue with GitHub). Optional: Vercel connector | Free |
-| Claude Code | On your computer, or claude.ai/code for the cloud path | Your plan |
+| Resend (email for invites) | Account and a domain you can add DNS records to. Without it Supabase only emails members of your Supabase organization | Free (3,000 emails a month) |
+| Claude Code | On your computer, or claude.ai/code for the cloud path | Paid Claude plan (Pro, Max, Team, Enterprise) or API usage; the free plan has no Claude Code |
 
 ### Install
 On your computer, in an empty folder:
@@ -69,7 +72,8 @@ must ask about `crm/` or a new repo, and nothing else.
 | 6. GitHub | Private repo (or the cloud repo) has the commit. No `.env.local` in git (`git ls-files | grep env`). |
 | 7. Supabase | Free project, all migrations applied, keys only in `.env.local` or environment settings. |
 | 8. Vercel | Live URL, `/api/health` says `"mode":"supabase"`. Env vars set without Airtable ones. |
-| 9. Admin | Sign-in email arrives, you can sign in, System page shows you as admin. |
+| 8b. Emails | `npm run auth:check` says ok for the site URL, Site URL, redirect URL and SMTP (or SMTP is written down as open). |
+| 9. Admin | Invite email arrives, its link opens the live app (not localhost) and signs you in, System page shows you as admin. Invite a second address that is not in your Supabase organization: it must arrive too (needs SMTP). |
 | Copy | `/roles-and-access` then `/data-migrator`: counts match, the file opens in the app, `npm run migrate:parity` is green. Attach a file over 50 MB in Airtable once: it must be skipped and listed, not crash the copy. |
 | Parallel run | `/sync-and-cutover` phase 1: nightly sync runs (System page). Delete one record in Airtable: parity lists it as `extra`. |
 | Help | Say "help": summary has no secrets, contact confirmed, request id written to `kb/runs/`. |

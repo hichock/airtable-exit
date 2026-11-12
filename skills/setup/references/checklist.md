@@ -73,8 +73,19 @@ shows them in the same places in its examples); fall back to the legacy keys if 
 Store the db password in the owner's password manager, not in the repo.
 Free plan (sourced, supabase.com/pricing): 500 MB database, 1 GB files, 50 MB per file, 2 active projects, pauses
 after 1 week with no activity. Plenty for most small CRMs. Files over 50 MB are skipped by the copy and listed.
-Auth: Dashboard → Authentication → URL Configuration: Site URL = the Vercel URL; add `<url>/auth/callback` to
-Redirect URLs. Email sign-ups can stay off: the app only lets invited people in.
+Auth (after §8 gives the live URL): Site URL = the Vercel URL; `<url>/auth/callback` in Redirect URLs.
+`npm run auth:check -- --fix` sets both through the Management API when a Supabase access token is available
+(`SUPABASE_ACCESS_TOKEN`, or the one `supabase login` saved); else Dashboard → Authentication → URL Configuration.
+Supabase falls back to the Site URL (default `http://localhost:3000`) when the redirect URL is not allowed (sourced,
+Supabase docs "Redirect URLs", read 2026-11-12). Email sign-ups can stay off: the app only lets invited people in.
+**Email sending** (sourced, Supabase docs "Custom SMTP", read 2026-11-12): without custom SMTP, Supabase Auth only
+delivers to members of the project's organization ("Email address not authorized" for everyone else) and at most
+2 messages an hour. Custom SMTP is required before inviting anyone else. Default: Resend (free plan 3,000 emails a
+month, 100 a day, sourced resend.com/pricing 2026-11-12): verify a domain, create an API key, then Supabase →
+Authentication → Emails → SMTP Settings: host `smtp.resend.com`, port `465`, user `resend`, password = the API key,
+sender `no-reply@<verified domain>` (sourced, resend.com/docs/send-with-supabase-smtp, read 2026-11-12). Supabase
+then allows 30 emails an hour; raise it in Authentication → Rate Limits if a big team is invited at once.
+Owner's steps: [guides/supabase.md](guides/supabase.md) → "Email". `npm run auth:check` shows `ok` for SMTP once on.
 
 ## §8 Vercel (Hobby by default)
 Connector path: `create_project` (or import the GitHub repo) → `create_project_env` per variable for production and
@@ -82,10 +93,16 @@ preview → `create_deployment` or a push to the production branch → read the 
 CLI path:
 ```bash
 vercel link --yes
-for k in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY NEXT_PUBLIC_SITE_URL CRON_SECRET; do
+for k in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY CRON_SECRET; do
   for env in production preview; do grep "^$k=" .env.local | cut -d= -f2- | vercel env add "$k" "$env"; done
 done
-vercel deploy --prod
+vercel deploy --prod                                  # prints the production URL
+# then the live URL (never the localhost value from .env.example), in Vercel and in .env.local:
+URL=https://<project>.vercel.app
+printf %s "$URL" | vercel env add NEXT_PUBLIC_SITE_URL production
+sed -i.bak "s#^NEXT_PUBLIC_SITE_URL=.*#NEXT_PUBLIC_SITE_URL=$URL#" .env.local && rm .env.local.bak
+vercel deploy --prod                                  # NEXT_PUBLIC_ values are read at build time
+npm run auth:check -- --fix                           # Site URL + redirect URL in Supabase (§7 "Auth")
 ```
 Dashboard path (no tools): [guides/vercel.md](guides/vercel.md).
 `CRON_SECRET`: generate with `openssl rand -hex 24` into `.env.local` first. `AIRTABLE_PAT`, `AIRTABLE_BASE_ID` and

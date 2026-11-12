@@ -1,6 +1,7 @@
 // Usage: npm run schema:from-airtable -- <inventory.json> [--base appXXX] [--out app.schema.json] [--notes kb/schema.md] [--name "Our CRM"]
 // Writes a draft app.schema.json and the mapping notes. Review the notes before generating SQL (npm run schema:sql).
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { draftFromBase, notesMarkdown, type AtBase } from "./map.ts";
 import { validateSchema } from "../../lib/schema/validate.ts";
 
@@ -20,8 +21,10 @@ if (!base) { console.error(`Base ${arg("base") ?? "(first)"} not found in ${inpu
 const draft = draftFromBase(base, arg("name") ?? base.name);
 const check = validateSchema(draft.schema);
 const out = arg("out") ?? "app.schema.json";
+mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, JSON.stringify(draft.schema, null, 2) + "\n");
 const notesPath = arg("notes") ?? "kb/schema.md";
+mkdirSync(dirname(notesPath), { recursive: true });
 writeFileSync(notesPath, `# Schema mapping: ${base.name}\n\nStatus: draft (generated ${new Date().toISOString().slice(0, 10)} from ${input}). Edit app.schema.json, not this table.\n\n${notesMarkdown(draft)}`);
 console.log(`wrote ${out} and ${notesPath}`);
 for (const e of check.errors) console.error("error: " + e);

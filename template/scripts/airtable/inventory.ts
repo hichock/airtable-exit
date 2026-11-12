@@ -6,14 +6,18 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { AirtableClient } from "../../lib/airtable/client.ts";
 import { inventoryBase } from "../../lib/airtable/inventory.ts";
-import { loadEnvFile, need } from "../migrate/env.ts";
+import { helpAndExit, loadEnvFile, need } from "../migrate/env.ts";
 
+helpAndExit("Usage: npm run airtable:inventory -- [appXXX ...] [--activity]\nReads the base(s) read-only with AIRTABLE_PAT (and AIRTABLE_BASE_ID when no id is given).\nWrites kb/airtable/inventory.json and .migrate/people.json (gitignored).");
 loadEnvFile();
 const at = new AirtableClient(need("AIRTABLE_PAT"));
 const ids = process.argv.slice(2).filter((a) => a.startsWith("app"));
 const activity = process.argv.includes("--activity");
 
-const who = await at.get<{ id: string; scopes?: string[] }>("meta/whoami");
+const who = await at.get<{ id: string; scopes?: string[] }>("meta/whoami").catch((e: Error) => {
+  console.error(`${e.message}\nCheck AIRTABLE_PAT: a read-only token with the scopes in the bundle's skills/setup/references/guides/airtable-token.md.`);
+  return process.exit(1);
+});
 const bases: { id: string; name: string; permissionLevel: string }[] = [];
 let offset: string | undefined;
 do {
